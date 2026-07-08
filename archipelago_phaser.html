@@ -119,15 +119,11 @@ class OnboardScene extends Phaser.Scene {
     btnBg.isStroked=true;btnBg.isFilled=true;
     this.add.text(cx,btnY+22,'ADALARI  GÖR',{fontFamily:'monospace',fontSize:'11px',color:'#DEAE53',letterSpacing:3}).setOrigin(.5);
 
-    const goSelect=()=>{this.cameras.main.fadeOut(350,0,0,0);this.cameras.main.once('camerafadeoutcomplete',()=>this.scene.start('Select'));};
-    // herhangi bir tıklama
+    const goSelect=()=>{this.scene.start('Select');};
     this.input.on('pointerdown',goSelect);
-    // klavyeden ENTER veya BOŞLUK
     this.input.keyboard.on('keydown-ENTER',goSelect);
     this.input.keyboard.on('keydown-SPACE',goSelect);
-    // DOM fallback: canvas'a direkt tıklama
-    this.game.canvas.addEventListener('click',goSelect);
-    this.game.canvas.addEventListener('touchend',goSelect);
+    this.add.text(cx,580,'herhangi bir tuşa bas veya tıkla',{fontFamily:'monospace',fontSize:'9px',color:'#C8BB9F',letterSpacing:1}).setOrigin(.5).setAlpha(.3);
   }
 }
 
@@ -189,10 +185,7 @@ class SelectScene extends Phaser.Scene {
   }
 
   startGame(isl){
-    this.cameras.main.fadeOut(350,0,0,0);
-    this.cameras.main.once('camerafadeoutcomplete',()=>{
-      this.scene.start('Crisis',{island:isl,domains:{...isl.domains},turn:0,history:[],axis:0});
-    });
+    this.scene.start('Crisis',{island:isl,domains:{...isl.domains},turn:0,history:[],axis:0});
   }
 }
 
@@ -254,8 +247,7 @@ class CrisisScene extends Phaser.Scene {
           }
         }
       }else if(this._state==='feedback'){
-        this.cameras.main.fadeOut(250,0,0,0);
-        this.cameras.main.once('camerafadeoutcomplete',()=>{this.scene.start('Crisis',{island:this.island,domains:this.domains,turn:this.turn+1,history:this.history,axis:this.axis});});
+        this.scene.start('Crisis',{island:this.island,domains:this.domains,turn:this.turn+1,history:this.history,axis:this.axis});
       }
     });
     this.input.keyboard.on('keydown-ENTER',()=>{if(this._state==='feedback')this.input.emit('pointerdown',{x:-1,y:-1});});
@@ -364,8 +356,8 @@ class FinalScene extends Phaser.Scene {
     // yeniden oyna
     const ry=this.history.length?365+this.history.length*20+30:370;
     const replay=this.add.text(cx,ry,'YENİDEN OYNA  (tıkla)',{fontFamily:'monospace',fontSize:'10px',color:'#DEAE53',letterSpacing:3}).setOrigin(.5).setAlpha(.4);
-    this.input.on('pointerdown',()=>{this.cameras.main.fadeOut(300,0,0,0);this.cameras.main.once('camerafadeoutcomplete',()=>this.scene.start('Select'));});
-    this.input.keyboard.on('keydown-ENTER',()=>{this.cameras.main.fadeOut(300,0,0,0);this.cameras.main.once('camerafadeoutcomplete',()=>this.scene.start('Select'));});
+    this.input.on('pointerdown',()=>{this.scene.start('Select');});
+    this.input.keyboard.on('keydown-ENTER',()=>{this.scene.start('Select');});
   }
 }
 
