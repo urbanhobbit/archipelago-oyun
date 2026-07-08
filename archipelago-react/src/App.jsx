@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useGameState } from './hooks/useGameState';
 import { DOMAIN_ORDER, DOMAIN_NAMES, DOMAIN_DESCS, ISLANDS, fmt } from './data/gameData';
 import { Application, Graphics, Text } from 'pixi.js';
@@ -7,22 +8,24 @@ import { Application, Graphics, Text } from 'pixi.js';
 function Starfield() {
   const ref = useRef(null);
   useEffect(() => {
+    let alive = true;
     const app = new Application();
     const init = async () => {
-      await app.init({ background: 'transparent', resizeTo: window, antialias: true });
+      await app.init({ background: 'transparent', width: window.innerWidth, height: window.innerHeight, antialias: true });
+      if (!alive || !ref.current) { app.destroy(); return; }
       ref.current.appendChild(app.canvas);
       const stars = [];
-      const W = app.screen.width, H = app.screen.height;
       for (let i = 0; i < 150; i++) {
         const g = new Graphics();
         const r = .3 + Math.random() * 1.5;
         g.circle(0, 0, r);
         g.fill({ color: 0xc8bbdc, alpha: .3 + Math.random() * .5 });
-        g.x = Math.random() * W; g.y = Math.random() * H;
+        g.x = Math.random() * app.screen.width; g.y = Math.random() * app.screen.height;
         g.vx = -.3 + Math.random() * .6; g.vy = -.2 + Math.random() * .4;
         app.stage.addChild(g);
         stars.push(g);
       }
+      const W = app.screen.width, H = app.screen.height;
       app.ticker.add(() => {
         stars.forEach(s => {
           s.x += s.vx; s.y += s.vy;
@@ -32,7 +35,7 @@ function Starfield() {
       });
     };
     init();
-    return () => { app.destroy(true); };
+    return () => { alive = false; try { app.destroy(false, { children: true }); } catch(e) {} };
   }, []);
   return <div ref={ref} style={{ position: 'fixed', top: 0, left: 0, zIndex: 0, pointerEvents: 'none' }} />;
 }
@@ -43,9 +46,11 @@ function RadarChart({ values, color, size = 240, labelColor = '#12202E' }) {
   const cx = size / 2, cy = size / 2, maxR = size * .42;
 
   useEffect(() => {
+    let alive = true;
     const app = new Application();
     const init = async () => {
       await app.init({ width: size, height: size, background: 'transparent', antialias: true });
+      if (!alive || !ref.current) { app.destroy(); return; }
       ref.current.innerHTML = '';
       ref.current.appendChild(app.canvas);
       const g = new Graphics();
@@ -103,7 +108,7 @@ function RadarChart({ values, color, size = 240, labelColor = '#12202E' }) {
       app.stage.addChild(g);
     };
     init();
-    return () => { app.destroy(true); };
+    return () => { alive = false; try { app.destroy(false, { children: true }); } catch(e) {} };
   }, [values, color, size, labelColor]);
 
   return <div ref={ref} style={{ width: size, height: size }} />;
@@ -385,7 +390,7 @@ export default function App() {
 
   return (
     <>
-      <Starfield />
+      {createPortal(<Starfield />, document.body)}
       {screen === 'onboard' && <OnboardScreen onStart={() => { setScreen('select'); }} />}
       {screen === 'select' && <SelectScreen onSelect={(isl) => { startGame(isl); }} />}
       {screen === 'crisis' && <CrisisScreen state={state} onChoose={choosePolicy} onContinue={continueTurn} />}
