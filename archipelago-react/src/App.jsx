@@ -1,129 +1,95 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
-import { createPortal } from 'react-dom';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useGameState } from './hooks/useGameState';
 import { DOMAIN_ORDER, DOMAIN_NAMES, DOMAIN_DESCS, ISLANDS, fmt } from './data/gameData';
-import { Application, Graphics, Text } from 'pixi.js';
 
-/* ===== PIXI STARFIELD ===== */
-function Starfield() {
-  const ref = useRef(null);
-  useEffect(() => {
-    let alive = true;
-    const app = new Application();
-    const init = async () => {
-      await app.init({ backgroundAlpha: 0, width: window.innerWidth, height: window.innerHeight, antialias: true });
-      if (!alive || !ref.current) { app.destroy(); return; }
-      ref.current.appendChild(app.canvas);
-      const stars = [];
-      for (let i = 0; i < 150; i++) {
-        const g = new Graphics();
-        const r = .3 + Math.random() * 1.5;
-        g.circle(0, 0, r);
-        g.fill({ color: 0xc8bbdc, alpha: .3 + Math.random() * .5 });
-        g.x = Math.random() * app.screen.width; g.y = Math.random() * app.screen.height;
-        g.vx = -.3 + Math.random() * .6; g.vy = -.2 + Math.random() * .4;
-        app.stage.addChild(g);
-        stars.push(g);
-      }
-      const W = app.screen.width, H = app.screen.height;
-      app.ticker.add(() => {
-        stars.forEach(s => {
-          s.x += s.vx; s.y += s.vy;
-          if (s.x < -10) s.x = W + 10; if (s.x > W + 10) s.x = -10;
-          if (s.y < -10) s.y = H + 10; if (s.y > H + 10) s.y = -10;
-        });
-      });
-    };
-    init();
-    return () => { alive = false; try { app.destroy(false, { children: true }); } catch(e) {} };
-  }, []);
-  return <div ref={ref} style={{ position: 'fixed', top: 0, left: 0, zIndex: 0, pointerEvents: 'none' }} />;
+/* ── theme ──────────────────────────────────────────── */
+function useTheme() {
+  const [theme, setTheme] = useState('dark');
+  useEffect(() => { document.documentElement.setAttribute('data-theme', theme); }, [theme]);
+  const toggle = useCallback(() => setTheme(t => t === 'dark' ? 'light' : 'dark'), []);
+  return { theme, toggle };
 }
 
-/* ===== RADAR CHART (PIXI) ===== */
-function RadarChart({ values, color, size = 240, labelColor = '#12202E' }) {
-  const ref = useRef(null);
-  const cx = size / 2, cy = size / 2, maxR = size * .42;
+/* ── SVG Radar ──────────────────────────────────────── */
+const LABEL_POS = [
+  { x: 150, y: 14,  a: 'middle' },
+  { x: 278, y: 82,  a: 'start'  },
+  { x: 278, y: 218, a: 'start'  },
+  { x: 150, y: 286, a: 'middle' },
+  { x: 22,  y: 218, a: 'end'    },
+  { x: 22,  y: 82,  a: 'end'    },
+];
 
-  useEffect(() => {
-    let alive = true;
-    const app = new Application();
-    const init = async () => {
-      await app.init({ backgroundAlpha: 0, width: size, height: size, antialias: true });
-      if (!alive || !ref.current) { app.destroy(); return; }
-      ref.current.innerHTML = '';
-      ref.current.appendChild(app.canvas);
-      const g = new Graphics();
+function radarPts(values, cx, cy, r) {
+  return DOMAIN_ORDER.map((k, i) => {
+    const a = (-90 + i * 60) * Math.PI / 180;
+    const v = Math.max(0, Math.min(10, values[k] ?? 0));
+    return `${(cx + r * (v / 10) * Math.cos(a)).toFixed(1)},${(cy + r * (v / 10) * Math.sin(a)).toFixed(1)}`;
+  }).join(' ');
+}
+function hexPts(r, cx, cy) {
+  return DOMAIN_ORDER.map((_, i) => {
+    const a = (-90 + i * 60) * Math.PI / 180;
+    return `${(cx + r * Math.cos(a)).toFixed(1)},${(cy + r * Math.sin(a)).toFixed(1)}`;
+  }).join(' ');
+}
 
-      // grid
-      [.2, .4, .6, .8, 1].forEach(f => {
-        const pts = [];
-        DOMAIN_ORDER.forEach((_, i) => {
+function RadarSVG({ values, color, prev = null, size = 300 }) {
+  const cx = size / 2, cy = size / 2, maxR = size * .38;
+  const strokeColor = 'var(--border-hi)';
+  return (
+    <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size} role="img">
+      <g fill="none">
+        {[.2,.4,.6,.8,1].map(f => (
+          <polygon key={f} points={hexPts(maxR * f, cx, cy)}
+            stroke={strokeColor} strokeWidth={f === 1 ? 1 : .5}
+            strokeDasharray={f === 1 ? '0' : '3,4'} />
+        ))}
+        {DOMAIN_ORDER.map((_, i) => {
           const a = (-90 + i * 60) * Math.PI / 180;
-          pts.push({ x: cx + maxR * f * Math.cos(a), y: cy + maxR * f * Math.sin(a) });
-        });
-        g.poly(pts.map(p => [p.x, p.y]).flat());
-        g.stroke({ width: .5, color: 0x12202E, alpha: f === 1 ? .15 : .08 });
-      });
+          return <line key={i} x1={cx} y1={cy}
+            x2={(cx + maxR * Math.cos(a)).toFixed(1)}
+            y2={(cy + maxR * Math.sin(a)).toFixed(1)}
+            stroke={strokeColor} strokeWidth=".5" />;
+        })}
+      </g>
 
-      // axes
-      DOMAIN_ORDER.forEach((_, i) => {
-        const a = (-90 + i * 60) * Math.PI / 180;
-        g.moveTo(cx, cy);
-        g.lineTo(cx + maxR * Math.cos(a), cy + maxR * Math.sin(a));
-        g.stroke({ width: .5, color: 0x12202E, alpha: .08 });
-      });
+      {prev && (
+        <polygon points={radarPts(prev, cx, cy, maxR)}
+          fill="none" stroke="var(--text-3)" strokeWidth="1.5"
+          strokeDasharray="3,4" opacity=".5" />
+      )}
 
-      // data polygon
-      const hex = parseInt(color.replace('#', ''), 16);
-      const dpts = [];
-      DOMAIN_ORDER.forEach((_, i) => {
-        const a = (-90 + i * 60) * Math.PI / 180;
-        const v = Math.max(0, Math.min(10, values[DOMAIN_ORDER[i]] || 0));
-        dpts.push({ x: cx + maxR * (v / 10) * Math.cos(a), y: cy + maxR * (v / 10) * Math.sin(a) });
-      });
-      g.poly(dpts.map(p => [p.x, p.y]).flat());
-      g.fill({ color: hex, alpha: .2 });
-      g.stroke({ width: 2, color: hex, alpha: .7 });
+      <polygon points={radarPts(values, cx, cy, maxR)}
+        fill={color} fillOpacity=".18"
+        stroke={color} strokeWidth="2" strokeLinejoin="round" />
 
-      // labels
-      const labelStyle = { fontSize: 10, fontFamily: 'SFMono-Regular, Consolas, monospace', fill: labelColor, fontWeight: '700' };
-      const labelPos = [
-        { x: cx, y: 10, anchor: .5 }, { x: cx + maxR + 18, y: cy - 4, anchor: 0 },
-        { x: cx + maxR + 18, y: cy + 8, anchor: 0 }, { x: cx, y: cy + maxR + 22, anchor: .5 },
-        { x: cx - maxR - 18, y: cy + 8, anchor: 1 }, { x: cx - maxR - 18, y: cy - 4, anchor: 1 }
-      ];
-      DOMAIN_ORDER.forEach((k, i) => {
-        const lp = labelPos[i];
-        const t = new Text({ text: k, style: labelStyle });
-        t.anchor = { x: typeof lp.anchor === 'number' ? lp.anchor : .5, y: .5 };
-        t.x = lp.x; t.y = lp.y;
-        app.stage.addChild(t);
-      });
+      {DOMAIN_ORDER.map((k, i) => {
+        const p = LABEL_POS[i];
+        return (
+          <text key={k} x={p.x} y={p.y} textAnchor={p.a}
+            fontFamily="SFMono-Regular,Consolas,monospace"
+            fontSize="11" fontWeight="700" fill="var(--text-2)">
+            {k}
+          </text>
+        );
+      })}
 
-      // center dot
-      g.circle(cx, cy, 3);
-      g.fill({ color: hex, alpha: .8 });
-
-      app.stage.addChild(g);
-    };
-    init();
-    return () => { alive = false; try { app.destroy(false, { children: true }); } catch(e) {} };
-  }, [values, color, size, labelColor]);
-
-  return <div ref={ref} style={{ width: size, height: size }} />;
+      <circle cx={cx} cy={cy} r="4" fill={color} opacity=".7" />
+    </svg>
+  );
 }
 
-/* ===== ONBOARD SCREEN ===== */
-function OnboardScreen({ onStart }) {
+/* ── Onboard ─────────────────────────────────────────── */
+function OnboardScreen({ onNext }) {
   return (
     <div>
-      <header className="title">
-        <h1>ARCHIPELAGO</h1>
-        <div className="rule" />
-        <p>bir sosyal sözleşme yönetim oyunu</p>
-        <div className="comic-divider">§ o o o §</div>
-      </header>
+      <p className="onboard-prose">
+        Her toplum <b>altı boyutlu kırılgan bir denge</b> üzerinde durur.
+        Bu denge sabit değildir — krizler altında kayar, kararlarla şekillenir.
+        Bir ada seç. Dört kriz yönet. Sözleşmeni inşa et.
+      </p>
+
       <div className="domain-grid">
         {DOMAIN_ORDER.map(k => (
           <div className="domain-chip" key={k}>
@@ -133,67 +99,90 @@ function OnboardScreen({ onStart }) {
           </div>
         ))}
       </div>
-      <p className="prose">Her toplum altı boyutlu kırılgan bir denge üzerinde durur. <b>Bir ada seç, dört krizi yönet, sözleşmeni inşa et.</b></p>
-      <div className="center mt-24">
-        <button className="btn-ghost" onClick={onStart}>ADALARI GÖR</button>
+
+      <p className="onboard-prose" style={{ fontSize: 13, marginBottom: 0 }}>
+        Amaç hiçbir boyutu maksimuma çıkarmak değil — <b>dengeli ve dirençli</b> bir bütün kurmak.
+      </p>
+
+      <div className="center mt-8">
+        <button className="btn btn-primary" onClick={onNext}>Adaları Gör</button>
       </div>
     </div>
   );
 }
 
-/* ===== SELECT SCREEN ===== */
+/* ── Island Select ───────────────────────────────────── */
 function SelectScreen({ onSelect }) {
   return (
     <div>
-      <header className="title">
-        <h1>ARCHIPELAGO</h1>
-        <p style={{ marginBottom: 4 }}>bir ada seç</p>
-        <div className="comic-divider">§ o o o §</div>
-      </header>
+      <p className="select-intro">
+        Her adanın kendi güçlü ve kırılgan yanları var — aynı politika her adada aynı sonucu vermez.
+      </p>
       <div className="island-grid">
-        {ISLANDS.map(isl => (
-          <div className="island-card" key={isl.id} onClick={() => onSelect(isl)}>
-            <div className="accent-bar" style={{ background: isl.accent }} />
+        {ISLANDS.map((isl, i) => (
+          <button
+            key={isl.id}
+            className="island-card"
+            onClick={() => onSelect(isl)}
+            style={{ '--accent-color': isl.accent, animationDelay: `${i * 60}ms` }}
+          >
+            <div className="accent-line" style={{ background: isl.accent }} />
             <h3>{isl.name}</h3>
             <p className="tag">{isl.tag}</p>
             {DOMAIN_ORDER.map(k => (
               <div className="bar-row" key={k}>
                 <span className="k">{k}</span>
-                <span className="track"><span className="fill" style={{ width: (isl.domains[k] || 0) * 10 + '%', background: isl.accent }} /></span>
+                <span className="track">
+                  <span className="fill" style={{ width: `${(isl.domains[k] ?? 0) * 10}%`, background: isl.accent }} />
+                </span>
               </div>
             ))}
-          </div>
+          </button>
         ))}
       </div>
-      <div className="center mt-16">
-        <button className="btn-ghost" onClick={() => onSelect(ISLANDS[Math.floor(Math.random() * ISLANDS.length)])}>rastgele bir ada seç</button>
+      <div className="center">
+        <button className="btn btn-ghost" onClick={() => onSelect(ISLANDS[Math.floor(Math.random() * ISLANDS.length)])}>
+          Rastgele Ada
+        </button>
       </div>
     </div>
   );
 }
 
-/* ===== CRISIS SCREEN ===== */
+/* ── Crisis Screen ───────────────────────────────────── */
 function CrisisScreen({ state, onChoose, onContinue }) {
   const crisis = state.crises[state.turn];
-  const fragile = DOMAIN_ORDER.filter(k => (state.domains[k] || 0) < 3);
+  const fragile = DOMAIN_ORDER.filter(k => (state.domains[k] ?? 0) < 3);
+  const [openDesc, setOpenDesc] = useState(null);
+  const [prevDomains, setPrevDomains] = useState(null);
+
+  useEffect(() => { if (state.showFeedback) setPrevDomains({ ...state.domains }); }, [state.showFeedback]);
+  useEffect(() => { if (!state.showFeedback) setPrevDomains(null); }, [state.showFeedback]);
+
+  if (!crisis) return null;
 
   return (
-    <div>
+    <div className="crisis-layout">
+      {/* Topbar */}
       <div className="topbar">
-        <div>
-          <p className="label">ada</p>
-          <p className="value">{state.island?.name}</p>
+        <div className="topbar-left">
+          <div className="label">ada</div>
+          <div className="value">{state.island?.name}</div>
         </div>
-        <div className="right">
-          <p className="label">kriz</p>
-          <p className="value">{state.turn + 1} / {state.crises.length}</p>
+        <div>
+          <div className="label" style={{ fontFamily: 'var(--f-mono)', fontSize: 9, letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--text-3)', textAlign: 'right' }}>kriz {state.turn + 1} / {state.crises.length}</div>
+          <div className="progress-dots" style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 6 }}>
+            {state.crises.map((_, i) => (
+              <div key={i} className={`progress-dot${i < state.turn ? ' done' : ''}`} />
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Echo */}
-      {state.pendingEchoes.length > 0 && (
+      {/* Echoes */}
+      {state.pendingEchoes?.length > 0 && (
         <div className="echo-banner">
-          <span className="eyebrow" style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--accent)', marginBottom: 4 }}>geçmişin yankısı</span>
+          <span className="echo-label">geçmişin yankısı</span>
           {state.pendingEchoes.map((e, i) => <div key={i}>{e.text}</div>)}
         </div>
       )}
@@ -201,200 +190,245 @@ function CrisisScreen({ state, onChoose, onContinue }) {
       {/* Fragility */}
       {fragile.length > 0 && (
         <div className="frag-banner">
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--terracotta)', display: 'block', marginBottom: 4 }}>⚠ kırılganlık uyarısı</span>
-          {fragile.map(k => `${DOMAIN_NAMES[k]} (${k}: ${fmt(state.domains[k])})`).join(', ')} — kritik eşiğin altında.
+          <span className="fb-label">⚠ kırılganlık uyarısı</span>
+          {fragile.map(k => `${DOMAIN_NAMES[k]} (${k}: ${fmt(state.domains[k])})`).join(' · ')} — kritik eşiğin altında.
         </div>
       )}
 
-      {/* Radar + Legend */}
-      <div className="radar-wrap">
-        <RadarChart values={state.domains} color={state.island?.accent || '#5B4B8A'} />
-        <div className="legend">
-          {DOMAIN_ORDER.map(k => (
-            <div key={k}>
-              <div className={`row${(state.domains[k] || 0) < 3 ? ' fragile' : ''}`} onClick={e => e.currentTarget.classList.toggle('open')}>
-                <span><b>{k}</b> · {DOMAIN_NAMES[k]}</span>
-                <span className="val">{fmt(state.domains[k] || 0)}</span>
-              </div>
-              <div className="desc">{DOMAIN_DESCS[k]}</div>
+      {/* Two-col layout */}
+      <div className="crisis-body">
+        {/* Left — radar */}
+        <div className="crisis-left">
+          <div className="radar-container">
+            <div className="radar-svg-wrap">
+              <RadarSVG values={state.domains} color={state.island?.accent ?? '#7B6BB8'} />
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Crisis text */}
-      <div className="crisis-card">
-        <div className="eyebrow">KRİZ · {crisis.eyebrow}</div>
-        <div className="body">{crisis.text}</div>
-      </div>
-
-      {/* Options */}
-      {!state.showFeedback && (
-        <>
-          <div className="options">
-            {crisis.options.map((opt, i) => (
-              <button className="opt-btn" key={i} onClick={() => onChoose(crisis, opt)}>
-                <span>{opt.label}</span>
-                <span className="hint">{opt.hint}</span>
-                {opt.csrGate && (
-                  <span className={`csr-gate ${(state.domains.CSR || 0) >= opt.csrGate.threshold ? 'met' : 'unmet'}`}>
-                    {(state.domains.CSR || 0) >= opt.csrGate.threshold ? '✓ devlet güveni yeterli' : '⊙ devlet güveni düşük'}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-          <p className="kb-hint">kısayol: 1 2 3 seç · Enter devam</p>
-        </>
-      )}
-
-      {/* Feedback */}
-      {state.showFeedback && (
-        <div className="feedback-box">
-          <p className="main">{state.lastFeedback}</p>
-          {state.lastWhy && (
-            <p className="why">
-              <b>Neden böyle oldu?</b> {state.lastWhy.why}
-              {state.lastWhy.csrGate && <br />}
-              {state.lastWhy.csrGate && <span style={{ color: 'var(--teal)' }}>+ {state.lastWhy.csrGate}</span>}
-            </p>
-          )}
-          {state.lastDeltas && (
-            <div className="deltas">
-              {Object.keys(state.lastDeltas).filter(k => state.lastDeltas[k] !== 0).map(k => (
-                <span key={k} className={state.lastDeltas[k] > 0 ? 'up' : 'down'}>
-                  {k} {state.lastDeltas[k] > 0 ? '+' : ''}{fmt(state.lastDeltas[k])}
-                </span>
+            <div className="radar-legend">
+              {DOMAIN_ORDER.map(k => (
+                <div key={k}>
+                  <div
+                    className={`legend-row${(state.domains[k] ?? 0) < 3 ? ' fragile' : ''}${openDesc === k ? ' open' : ''}`}
+                    onClick={() => setOpenDesc(openDesc === k ? null : k)}
+                  >
+                    <span className="lk">{k}</span>
+                    <span className="lname">{DOMAIN_NAMES[k]}</span>
+                    <span className="lval">{fmt(state.domains[k] ?? 0)}</span>
+                  </div>
+                  {openDesc === k && <div className="legend-desc">{DOMAIN_DESCS[k]}</div>}
+                </div>
               ))}
             </div>
-          )}
-          {state.lastLesson && (
-            <span className={`lesson-flag${state.lastLessonClass ? ' ' + state.lastLessonClass : ''}`}>{state.lastLesson}</span>
-          )}
-          <div className="center">
-            <button className="btn-ghost" onClick={onContinue}>devam et</button>
           </div>
         </div>
-      )}
+
+        {/* Right — crisis + options */}
+        <div className="crisis-right">
+          <div className="crisis-card">
+            <div className="eyebrow">KRİZ · {crisis.eyebrow}</div>
+            <div className="body">{crisis.text}</div>
+          </div>
+
+          {!state.showFeedback && (
+            <>
+              <div className="options-list">
+                {crisis.options.map((opt, i) => (
+                  <button key={i} className="opt-btn" onClick={() => onChoose(crisis, opt)}>
+                    <span className="opt-label">{opt.label}</span>
+                    <span className="opt-hint">{opt.hint}</span>
+                    {opt.csrGate && (
+                      <span className={`opt-gate ${(state.domains.CSR ?? 0) >= opt.csrGate.threshold ? 'met' : 'unmet'}`}>
+                        {(state.domains.CSR ?? 0) >= opt.csrGate.threshold ? '✓ devlet güveni yeterli' : '⊙ devlet güveni düşük'}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+              <p className="kb-hint">1 / 2 / 3 seç · Enter devam</p>
+            </>
+          )}
+
+          {state.showFeedback && (
+            <div className="feedback-panel">
+              <p className="fb-main">{state.lastFeedback}</p>
+              {state.lastWhy && (
+                <p className="fb-why">
+                  <b>Neden böyle oldu?</b>{' '}{state.lastWhy.why}
+                  {state.lastWhy.csrGate && <><br /><span style={{ color: 'var(--teal)' }}>+ {state.lastWhy.csrGate}</span></>}
+                </p>
+              )}
+              {state.lastDeltas && (
+                <div className="delta-row">
+                  {Object.entries(state.lastDeltas).filter(([, v]) => v !== 0).map(([k, v]) => (
+                    <span key={k} className={`delta-chip ${v > 0 ? 'up' : 'down'}`}>
+                      {k} {v > 0 ? '+' : ''}{fmt(v)}
+                    </span>
+                  ))}
+                </div>
+              )}
+              {state.lastLesson && (
+                <div className={`lesson-flag ${state.lastLessonClass ?? ''}`}>{state.lastLesson}</div>
+              )}
+              <button className="btn btn-ghost" onClick={onContinue} style={{ display: 'block', width: '100%' }}>
+                Devam Et
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
 
-/* ===== FINAL SCREEN ===== */
-function FinalScreen({ state, onReplay, onExport }) {
-  const exclusion = ((state.domains?.CR || 0) + (state.domains?.JUS || 0)) / 2;
-  const parts = useMemo(() => {
-    const p = [];
-    p.push(<p key="a"><b>Sosyal sözleşme tek bir şey değil.</b> Altı boyutu ayrı ayrı izledin — birini yönetmek diğerini yönetmek anlamına gelmedi.</p>);
-    if (state.lessons.contextual.length) p.push(<p key="b"><b>Bağlam belirleyici.</b> {state.lessons.contextual.length} kararında aynı politika adanın koşulları yüzünden farklı sonuç verdi.</p>);
-    if (state.lessons.coRaise.length) p.push(<p key="c"><b>Sıfır toplamlı değil.</b> {state.lessons.coRaise.length} kez iki boyutu birden yükselttin.</p>);
-    if (state.lessons.tradeoff.length) p.push(<p key="d"><b>Ödünleşimler gerçek.</b> {state.lessons.tradeoff.length} kararında bir boyutu güçlendirmek bir başkasına dokundu.</p>);
-    if (state.lessons.echo.length) p.push(<p key="e"><b>Kararların yankısı var.</b> {state.lessons.echo.length} kez ertelediğin mesele karşına çıktı.</p>);
-    if (state.history.length) {
-      const last = state.history[state.history.length - 1];
-      p.push(<p key="f"><b>Döngü kapanmadı.</b> Son kararın "{last.choice}" — her karar bir sonraki için zemin hazırlar.</p>);
-    }
-    return p;
-  }, [state]);
+/* ── Final Screen ────────────────────────────────────── */
+function FinalScreen({ state, onReplay }) {
+  const exclusion = ((state.domains?.CR ?? 0) + (state.domains?.JUS ?? 0)) / 2;
 
-  const exportData = () => {
-    const d = {
-      ada: state.island?.name,
-      direncPuani: state.resilience,
-      arketip: state.archetype?.name,
-      arketipOrani: state.archetypeSplit,
-      finalDegerleri: state.domains,
-      kararlar: state.history
-    };
-    const blob = new Blob([JSON.stringify(d, null, 2)], { type: 'application/json' });
+  const learningItems = useMemo(() => {
+    const L = state.lessons;
+    const items = [];
+    items.push(<p key="a"><b>Sosyal sözleşme tek bir şey değil.</b> Altı boyutu ayrı ayrı izledin — birini yönetmek diğerini yönetmek anlamına gelmedi.</p>);
+    if (L.contextual?.length) items.push(<p key="b"><b>Bağlam belirleyici.</b> {L.contextual.length} kararında aynı politika, adanın koşulları yüzünden farklı sonuç verdi.</p>);
+    if (L.coRaise?.length) items.push(<p key="c"><b>Sıfır toplamlı değil.</b> {L.coRaise.length} kez iki boyutu birden yükselttin — kimse bedel ödemeden.</p>);
+    else items.push(<p key="c2">Sıfır toplamlı değil — ama bu oyunda o anı yakalayamadın. Başka bir adayla dene.</p>);
+    if (L.tradeoff?.length) items.push(<p key="d"><b>Ödünleşimler gerçek.</b> {L.tradeoff.length} kararında bir boyutu güçlendirmek diğerine dokundu.</p>);
+    if (L.echo?.length) items.push(<p key="e"><b>Kararların yankısı var.</b> {L.echo.length} kez ertelediğin mesele karşına çıktı.</p>);
+    if (state.history?.length) {
+      const last = state.history[state.history.length - 1];
+      items.push(<p key="f"><b>Döngü kapanmadı.</b> Son kararın "{last.choice}". Her karar bir sonraki için zemin hazırlar.</p>);
+    }
+    return items;
+  }, [state.lessons, state.history]);
+
+  const exportJSON = () => {
+    const d = { ada: state.island?.name, puan: state.resilience, arketip: state.archetype?.name, kararlar: state.history, finalDegerleri: state.domains };
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `archipelago-${state.island?.id}-${Date.now()}.json`;
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(d, null, 2)], { type: 'application/json' }));
+    a.download = `archipelago-${state.island?.id}.json`;
     a.click();
+  };
+
+  const copyText = () => {
+    const lines = [
+      `ARCHIPELAGO — ${state.island?.name}`,
+      `Direnç Puanı: ${state.resilience}`,
+      `Arketip: ${state.archetype?.name}`,
+      '',
+      ...( state.history?.map(h => `  #${h.turn} ${h.crisis}: ${h.choice}`) ?? [])
+    ];
+    navigator.clipboard.writeText(lines.join('\n')).catch(() => {});
   };
 
   return (
     <div>
+      {/* Hero */}
       <div className="final-hero">
-        <p className="score-label">— direnç puanı —</p>
-        <p className="score">{state.resilience}</p>
+        <div className="score-label">Direnç Puanı</div>
+        <div className="score">{state.resilience}</div>
       </div>
 
-      <div className="radar-wrap" style={{ justifyContent: 'center' }}>
-        <RadarChart values={state.domains} color={state.island?.accent || '#5B4B8A'} size={300} />
-      </div>
-
-      <div className="final-legend">
-        <span><i style={{ background: state.island?.accent }} />final</span>
-        <span><i style={{ background: '#DEAE53' }} />ideal (7)</span>
+      {/* Radar */}
+      <div className="radar-container" style={{ display: 'flex', justifyContent: 'center', marginBottom: 'var(--s6)' }}>
+        <RadarSVG values={state.domains ?? {}} color={state.island?.accent ?? '#7B6BB8'} size={300} />
       </div>
 
       {exclusion < 4 && (
         <div className="critical-note">
-          <b>Eleştirel not:</b> Uyum ve istikrar, dışlanan kesimlerin hakları pahasına inşa edildi. Görünürde sağlam bir sözleşme içeriden çürüyebilir.
+          <b>Eleştirel Not:</b> Uyum ve istikrar, dışlanan kesimlerin hakları ve adalet algısı pahasına inşa edildi. Görünürde sağlam bir sözleşme içeriden çürüyebilir.
         </div>
       )}
 
-      <div className="archetype-card">
-        <div className="split">{state.archetypeSplit}</div>
-        <h3>{state.archetype?.name}</h3>
-        <p>{state.archetype?.desc}</p>
-      </div>
-
-      <div className="history-panel">
-        <div className="h-label">kararların</div>
-        {state.history.map(h => (
-          <div className="h-item" key={h.turn}>
-            <span className="h-turn">#{h.turn}</span>
-            <span><strong>{h.crisis}</strong><br />{h.choice}</span>
+      {/* Two-col body */}
+      <div className="final-body">
+        <div>
+          <div className="archetype-card">
+            <div className="arch-split">{state.archetypeSplit}</div>
+            <h3>{state.archetype?.name}</h3>
+            <p>{state.archetype?.desc}</p>
           </div>
-        ))}
+
+          <div className="history-card" style={{ marginTop: 'var(--s4)' }}>
+            <h4>Kararların</h4>
+            {state.history?.map(h => (
+              <div key={h.turn} className="h-item">
+                <span className="h-turn">#{h.turn}</span>
+                <div className="h-main">
+                  <strong>{h.crisis}</strong>
+                  {h.choice}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <div className="learning-card">
+            <h4>Bu Oyunda Ne Yaşadın</h4>
+            {learningItems}
+          </div>
+        </div>
       </div>
 
-      <div className="learning-card">
-        <h4>bu oyunda ne yaşadın</h4>
-        {parts}
-      </div>
-
-      <div className="center" style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 16 }}>
-        <button className="btn-small" onClick={exportData}>⬇ özeti indir (JSON)</button>
+      {/* Actions */}
+      <div className="export-row">
+        <button className="btn btn-secondary" onClick={copyText}>Panoya Kopyala</button>
+        <button className="btn btn-secondary" onClick={exportJSON}>JSON İndir</button>
       </div>
       <div className="center">
-        <button className="btn-ghost" onClick={onReplay}>yeniden oyna</button>
+        <button className="btn btn-primary" onClick={onReplay}>Yeniden Oyna</button>
       </div>
     </div>
   );
 }
 
-/* ===== APP ===== */
+/* ── App ─────────────────────────────────────────────── */
 export default function App() {
   const { state, startGame, choosePolicy, continueTurn, replay } = useGameState();
+  const { theme, toggle } = useTheme();
   const [screen, setScreen] = useState('onboard');
 
   useEffect(() => { setScreen(state.screen); }, [state.screen]);
 
+  // keyboard shortcuts
   useEffect(() => {
-    const onKey = (e) => {
-      if (screen === 'crisis') {
-        if (e.key === 'Enter' && state.showFeedback) continueTurn();
-        if (!state.showFeedback) {
-          const crisis = state.crises[state.turn];
-          const idx = parseInt(e.key) - 1;
-          if (idx >= 0 && idx < crisis.options.length) choosePolicy(crisis, crisis.options[idx]);
-        }
+    const handler = (e) => {
+      if (screen !== 'crisis') return;
+      if (state.showFeedback) {
+        if (e.key === 'Enter') continueTurn();
+        return;
       }
+      const crisis = state.crises?.[state.turn];
+      if (!crisis) return;
+      const i = parseInt(e.key) - 1;
+      if (i >= 0 && i < crisis.options.length) choosePolicy(crisis, crisis.options[i]);
     };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
   }, [screen, state.showFeedback, state.turn, state.crises, choosePolicy, continueTurn]);
 
   return (
     <>
-      {createPortal(<Starfield />, document.body)}
-      {screen === 'onboard' && <OnboardScreen onStart={() => { setScreen('select'); }} />}
-      {screen === 'select' && <SelectScreen onSelect={(isl) => { startGame(isl); }} />}
-      {screen === 'crisis' && <CrisisScreen state={state} onChoose={choosePolicy} onContinue={continueTurn} />}
-      {screen === 'final' && <FinalScreen state={state} onReplay={() => { replay(); }} />}
+      {/* Ambient background */}
+      <div className="bg-ambient">
+        <span /><span /><span />
+      </div>
+
+      {/* Theme toggle */}
+      <button className="theme-toggle" onClick={toggle}>
+        {theme === 'dark' ? '☀ Açık' : '☾ Koyu'}
+      </button>
+
+      {/* Header */}
+      <header className="app-header">
+        <h1>ARCHIPELAGO</h1>
+        <div className="divider" />
+        <div className="subtitle">Sosyal Sözleşme Yönetim Oyunu</div>
+      </header>
+
+      {/* Screens */}
+      {screen === 'onboard' && <OnboardScreen onNext={() => setScreen('select')} />}
+      {screen === 'select'  && <SelectScreen onSelect={(isl) => startGame(isl)} />}
+      {screen === 'crisis'  && <CrisisScreen state={state} onChoose={choosePolicy} onContinue={continueTurn} />}
+      {screen === 'final'   && <FinalScreen state={state} onReplay={() => { replay(); setScreen('onboard'); }} />}
     </>
   );
 }
