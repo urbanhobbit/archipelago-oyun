@@ -140,6 +140,7 @@ class SelectScene extends Phaser.Scene {
     this.add.text(cx,32,'BİR ADA SEÇ',{fontFamily:'Georgia,serif',fontSize:'26px',color:'#F2EBDB'}).setOrigin(.5);
 
     const cols=3,cardW=280,cardH=180,gap=20,startX=(W-(cols*cardW+(cols-1)*gap))/2+cardW/2;
+    const cardRects=[];
 
     ISLANDS.forEach((isl,i)=>{
       const col=i%cols,row=Math.floor(i/cols);
@@ -165,24 +166,20 @@ class SelectScene extends Phaser.Scene {
         this.add.text(bx-22,by+1,k,{fontFamily:'monospace',fontSize:'8px',color:'#3E526A'}).setAlpha(.5);
       });
 
-      // etkileşim
-      const hit=this.add.rectangle(x,y+cardH/2,cardW,cardH,0xffffff,0).setInteractive({useHandCursor:true});
-      hit.alpha=0;
-      // animasyon - cards stagger in
-      hit.setScale(.9);
-      this.tweens.add({targets:hit,duration:500,scale:1,delay:i*60,ease:'Back.easeOut'});
-
-      hit.on('pointerover',()=>{
-        this.tweens.add({targets:[nameTxt,tagTxt],duration:200,scale:1.04,ease:'Back.easeOut'});
-      });
-      hit.on('pointerout',()=>{
-        this.tweens.add({targets:[nameTxt,tagTxt],duration:200,scale:1,ease:'Back.easeOut'});
-      });
-      hit.on('pointerup',()=>{this.startGame(isl);});
+      // etkileşim — global pointer ile kart tespiti
+      cardRects.push({x:x-cardW/2,y:y,w:cardW,h:cardH,isl:isl,anim:[nameTxt,tagTxt]});
     });
 
-    // fallback: klavye ile ilerle
-    this.input.keyboard.on('keydown-ENTER',()=>this.startGame(ISLANDS[0]));
+    // global tıklama: hangi karta basıldı?
+    this.input.on('pointerdown',(pointer)=>{
+      for(const cr of cardRects){
+        if(pointer.x>=cr.x && pointer.x<=cr.x+cr.w && pointer.y>=cr.y && pointer.y<=cr.y+cr.h){
+          this.startGame(cr.isl);return;
+        }
+      }
+    });
+
+    // rastgele butonu
 
     // rastgele butonu
     const rndTxt=this.add.text(cx,640,'rastgele bir ada seç',{fontFamily:'monospace',fontSize:'10px',color:'#DEAE53',letterSpacing:2}).setOrigin(.5).setAlpha(.5).setInteractive({useHandCursor:true});
@@ -236,21 +233,32 @@ class CrisisScene extends Phaser.Scene {
     const crisisText=this.add.text(58,360,crisis.text,{fontFamily:'Inter, sans-serif',fontSize:'13px',color:'#F2EBDB',wordWrap:{width:W-130},lineSpacing:4}).setAlpha(.85);
 
     // seçenekler
+    const optionRects=[];
+    this._state='options';
     crisis.options.forEach((opt,i)=>{
       const by=430+i*70;
       const bg=this.add.graphics();
       bg.fillStyle(0xF2EBDB,.92);bg.fillRoundedRect(40,by,W-80,58,6);
       bg.lineStyle(1,0x000000,.04);bg.strokeRoundedRect(40,by,W-80,58,6);
-
       this.add.text(58,by+10,opt.label,{fontFamily:'Inter, sans-serif',fontSize:'13px',color:'#12202E',fontWeight:'600'});
       this.add.text(58,by+34,opt.hint,{fontFamily:'Inter, sans-serif',fontSize:'10px',color:'#3E526A',fontStyle:'italic'});
-
-      const hitBtn=this.add.rectangle(cx,by+29,W-80,58,0xffffff,0).setInteractive({useHandCursor:true});
-      hitBtn.alpha=0;
-      hitBtn.on('pointerover',()=>this.tweens.add({targets:[bg],duration:200,scaleX:1,props:{x:{from:40,to:48}},ease:'Back.easeOut'}));
-      hitBtn.on('pointerout',()=>this.tweens.add({targets:[bg],duration:200,props:{x:{to:40}},ease:'Back.easeOut'}));
-      hitBtn.on('pointerup',()=>this.choosePolicy(crisis,opt));
+      optionRects.push({x:40,y:by,w:W-80,h:58,opt,crisis});
     });
+
+    this.input.on('pointerdown',(pointer)=>{
+      if(this._state==='options'){
+        for(const or of optionRects){
+          if(pointer.x>=or.x&&pointer.x<=or.x+or.w&&pointer.y>=or.y&&pointer.y<=or.y+or.h){
+            this.choosePolicy(or.crisis,or.opt);
+            return;
+          }
+        }
+      }else if(this._state==='feedback'){
+        this.cameras.main.fadeOut(250,0,0,0);
+        this.cameras.main.once('camerafadeoutcomplete',()=>{this.scene.start('Crisis',{island:this.island,domains:this.domains,turn:this.turn+1,history:this.history,axis:this.axis});});
+      }
+    });
+    this.input.keyboard.on('keydown-ENTER',()=>{if(this._state==='feedback')this.input.emit('pointerdown',{x:-1,y:-1});});
   }
 
   drawRadar(cx,cy,r){
@@ -306,15 +314,10 @@ class CrisisScene extends Phaser.Scene {
     const fb=this.add.text(fx,fy,opt.feedback,{fontFamily:'Inter, sans-serif',fontSize:'12px',color:'#DEAE53',align:'center',wordWrap:{width:500}}).setOrigin(.5).setAlpha(0);
     this.tweens.add({targets:fb,duration:400,alpha:1,y:fy-10});
 
-    const continueTxt=this.add.text(fx,fy+40,'devam et >',{fontFamily:'monospace',fontSize:'11px',color:'#F2EBDB',letterSpacing:2}).setOrigin(.5).setAlpha(0).setInteractive({useHandCursor:true});
-    this.tweens.add({targets:continueTxt,duration:400,alpha:.6,delay:600});
-
-    continueTxt.on('pointerup',()=>{
-      this.cameras.main.fadeOut(250,0,0,0);
-      this.cameras.main.once('camerafadeoutcomplete',()=>{
-        this.scene.start('Crisis',{island:this.island,domains:this.domains,turn:this.turn+1,history:this.history,axis:this.axis});
-      });
-    });
+    const continueTxt=this.add.text(fx,fy+40,'devam et >  (tıkla veya ENTER)',{fontFamily:'monospace',fontSize:'10px',color:'#F2EBDB',letterSpacing:1}).setOrigin(.5).setAlpha(0);
+    this.tweens.add({targets:continueTxt,duration:400,alpha:.5,delay:500});
+    this._state='feedback';
+  }
   }
 
   finalize(){
@@ -360,10 +363,9 @@ class FinalScene extends Phaser.Scene {
 
     // yeniden oyna
     const ry=this.history.length?365+this.history.length*20+30:370;
-    const replay=this.add.text(cx,ry,'YENİDEN OYNA',{fontFamily:'monospace',fontSize:'10px',color:'#DEAE53',letterSpacing:3}).setOrigin(.5).setAlpha(.4).setInteractive({useHandCursor:true});
-    replay.on('pointerover',()=>replay.setAlpha(.9));
-    replay.on('pointerout',()=>replay.setAlpha(.4));
-    replay.on('pointerup',()=>{this.cameras.main.fadeOut(300,0,0,0);this.cameras.main.once('camerafadeoutcomplete',()=>this.scene.start('Select'));});
+    const replay=this.add.text(cx,ry,'YENİDEN OYNA  (tıkla)',{fontFamily:'monospace',fontSize:'10px',color:'#DEAE53',letterSpacing:3}).setOrigin(.5).setAlpha(.4);
+    this.input.on('pointerdown',()=>{this.cameras.main.fadeOut(300,0,0,0);this.cameras.main.once('camerafadeoutcomplete',()=>this.scene.start('Select'));});
+    this.input.keyboard.on('keydown-ENTER',()=>{this.cameras.main.fadeOut(300,0,0,0);this.cameras.main.once('camerafadeoutcomplete',()=>this.scene.start('Select'));});
   }
 }
 
