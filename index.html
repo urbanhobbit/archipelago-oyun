@@ -177,6 +177,77 @@ button.small-ghost:hover{background:rgba(242,235,219,.05);border-color:rgba(242,
 
 @keyframes winPulse{0%,100%{box-shadow:0 0 0 0 rgba(149,217,180,.5)}50%{box-shadow:0 0 0 10px rgba(149,217,180,0)}}
 .lesson-flag.win{background:rgba(149,217,180,.14);border-color:var(--teal);color:var(--teal);animation:winPulse 1.6s ease 3}
+
+/* === CIZGI ROMAN PANEL STILLERI === */
+
+/* --- panel köşe süslemeleri --- */
+.crisis-card,.feedback-box,.archetype-card,.critical-note{position:relative}
+.crisis-card::before,.feedback-box::before,.archetype-card::before,.critical-note::before{
+  content:'';position:absolute;top:-1px;left:-1px;width:14px;height:14px;
+  border-top:2px solid var(--gold);border-left:2px solid var(--gold);opacity:.5
+}
+.crisis-card::after,.feedback-box::after,.archetype-card::after,.critical-note::after{
+  content:'';position:absolute;bottom:-1px;right:-1px;width:14px;height:14px;
+  border-bottom:2px solid var(--gold);border-right:2px solid var(--gold);opacity:.5
+}
+
+/* --- konuşma balonu seçenekler --- */
+.opt-btn{position:relative}
+.opt-btn::before{
+  content:'';position:absolute;left:14px;bottom:-8px;width:0;height:0;
+  border-left:8px solid transparent;border-right:8px solid transparent;
+  border-top:8px solid rgba(242,235,219,.9);opacity:0;transition:opacity .3s
+}
+.opt-btn:hover::before,.opt-btn:focus-visible::before{opacity:1}
+
+/* --- damga / rozet efekti --- */
+.lesson-flag{position:relative;transform:rotate(-1.5deg);border-radius:2px;padding:10px 16px}
+.lesson-flag::before{
+  content:'';position:absolute;inset:-3px;border:2px solid rgba(222,174,83,.2);border-radius:4px;
+  transform:rotate(1deg);pointer-events:none
+}
+
+/* --- tipografik dramaturji --- */
+.crisis-card p.body{font-size:1.05rem}
+.crisis-card p.body b,.feedback-box p.why b,.learning-card p b{
+  background:linear-gradient(180deg,transparent 60%,rgba(222,174,83,.15) 60%);
+  padding:0 2px
+}
+.archetype-card h3{font-size:1.8rem;position:relative;display:inline-block}
+.archetype-card h3::after{
+  content:'';position:absolute;bottom:-4px;left:0;width:100%;height:2px;
+  background:linear-gradient(90deg,var(--gold),transparent)
+}
+
+/* --- sayısal vurgu --- */
+.score{letter-spacing:-3px}
+.topbar .value{letter-spacing:-1px}
+.h-turn{font-weight:700}
+
+/* --- bölüm ayracı --- */
+.comic-divider{text-align:center;margin:8px 0 20px;font-family:var(--font-mono);font-size:9px;letter-spacing:3px;color:var(--gold);opacity:.35}
+.comic-divider::before,.comic-divider::after{content:' · · · ';opacity:.5}
+
+/* --- halftone overlay --- */
+.island-card,.radar-wrap,.archetype-card,.opt-btn{
+  background-image:radial-gradient(circle,rgba(18,32,46,.02) 1px,transparent 1px);
+  background-size:6px 6px
+}
+
+/* --- panel kenar çentiği --- */
+.crisis-card{border-radius:0 8px 8px 0;clip-path:polygon(0 0,100% 0,100% 100%,0 100%,0 0)}
+.feedback-box{clip-path:polygon(0 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 0)}
+
+/* --- kart içi gölge derinliği --- */
+.island-card::after{content:'';position:absolute;bottom:0;left:4px;right:4px;height:20px;background:linear-gradient(transparent,rgba(0,0,0,.04));border-radius:0 0 6px 6px;pointer-events:none}
+
+/* --- panel başlık altı çizgisi --- */
+.archetype-card h3,.learning-card h4{position:relative}
+.learning-card h4::after{content:'';display:block;width:32px;height:1px;background:var(--gold);margin-top:4px}
+
+/* --- dot'ları çizgi roman mermisi gibi --- */
+.progress-dots i{border-width:1.5px;border-radius:2px;transform:rotate(45deg)}
+.progress-dots i.done{transform:rotate(45deg) scale(1.3)}
 </style>
 </head>
 <body>
@@ -188,6 +259,7 @@ button.small-ghost:hover{background:rgba(242,235,219,.05);border-color:rgba(242,
     <h1>ARCHIPELAGO</h1>
     <div class="rule"></div>
     <p>bir sosyal sözleşme yönetim oyunu</p>
+    <div class="comic-divider">&sect; o o o &sect;</div>
   </header>
 
   <!-- ONBOARDING -->
@@ -227,6 +299,7 @@ button.small-ghost:hover{background:rgba(242,235,219,.05);border-color:rgba(242,
     </div>
     <div id="echoSlot"></div>
     <div id="fragSlot"></div>
+    <div class="comic-divider" style="margin:0 0 14px">&#9670;</div>
     <div class="crisis-card">
       <p class="eyebrow" id="crisisEyebrow"></p>
       <p class="body" id="crisisText"></p>
@@ -249,7 +322,7 @@ button.small-ghost:hover{background:rgba(242,235,219,.05);border-color:rgba(242,
   <!-- FINAL -->
   <section id="screen-final" class="screen">
     <div class="final-hero">
-      <p class="score-label">direnç puanı</p>
+      <p class="score-label">&mdash; direnç puanı &mdash;</p>
       <p class="score" id="scoreValue">0</p>
     </div>
     <div class="radar-wrap">
