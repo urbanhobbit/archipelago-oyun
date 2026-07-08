@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ARCHIPELAGO — Phaser</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600&family=Inter:opsz,wght@14..32,300..500&display=swap" rel="stylesheet">
 <style>
   body{margin:0;padding:0;background:#030810;overflow:hidden}
   canvas{display:block}
@@ -72,19 +74,8 @@ function colorHex(num){return '#'+num.toString(16).padStart(6,'0');}
 class BootScene extends Phaser.Scene {
   constructor(){super('Boot');}
   create(){
-    // particle arkaplan
-    this.cameras.main.setBackgroundColor('#030810');
-    const particles=this.add.particles(0,0,'__WHITE',{
-      x:{min:0,max:W},y:{min:0,max:H},
-      speedX:{min:-4,max:4},speedY:{min:-3,max:3},
-      scale:{start:.3,end:0},alpha:{start:.5,end:0},
-      lifespan:6000,frequency:120,quantity:2,
-      tint:[0xC8BBDC,0xDEAE53,0x3D8A7A,0x8899BB]
-    });
-    // generate white texture
     const g=this.make.graphics({add:false});
     g.fillStyle(0xffffff);g.fillCircle(4,4,4);g.generateTexture('__WHITE',8,8);g.destroy();
-
     this.scene.start('Onboard');
   }
 }
@@ -94,33 +85,49 @@ class OnboardScene extends Phaser.Scene {
   constructor(){super('Onboard');}
   create(){
     const cx=W/2;
+    this.cameras.main.setBackgroundColor('#030810');
+
+    // particle arkaplan
+    this.add.particles(0,0,'__WHITE',{
+      x:{min:0,max:W},y:{min:0,max:H},
+      speedX:{min:-5,max:5},speedY:{min:-4,max:4},
+      scale:{start:.4,end:0},alpha:{start:.6,end:0},
+      lifespan:7000,frequency:100,quantity:2,
+      tint:[0xC8BBDC,0xDEAE53,0x3D8A7A,0x8899BB]
+    });
 
     // başlık
-    const title=this.add.text(cx,50,'ARCHIPELAGO',{fontFamily:'Georgia,serif',fontSize:'52px',color:'#F2EBDB'}).setOrigin(.5);
-    this.tweens.add({targets:title,duration:1200,y:50,alpha:{from:0,to:1},scale:{from:.8,to:1},ease:'Back.easeOut'});
+    const title=this.add.text(cx,45,'ARCHIPELAGO',{fontFamily:'Georgia,serif',fontSize:'50px',color:'#F2EBDB'}).setOrigin(.5).setAlpha(0);
+    this.tweens.add({targets:title,duration:1000,alpha:1,scale:{from:.8,to:1},ease:'Back.easeOut'});
 
     // ayraç
-    const rule=this.add.graphics();
-    rule.fillStyle(0xDEAE53,.4);rule.fillRect(cx-25,100,50,1);
+    this.add.graphics().fillStyle(0xDEAE53,.35).fillRect(cx-25,95,50,1);
 
     // alt başlık
-    this.add.text(cx,118,'bir sosyal sözleşme yönetim oyunu',{fontFamily:'monospace',fontSize:'10px',color:'#C8BB9F',letterSpacing:4}).setOrigin(.5).setAlpha(0).setAlpha(1);
+    this.add.text(cx,112,'bir sosyal sözleşme yönetim oyunu',{fontFamily:'monospace',fontSize:'10px',color:'#C8BB9F',letterSpacing:4}).setOrigin(.5).setAlpha(.5);
 
     // domain özeti
     const doms=DOMAIN_ORDER.map(k=>`  ${k}  ${DOMAIN_NAMES[k]}`).join('    ');
-    this.add.text(cx,170,doms,{fontFamily:'monospace',fontSize:'10px',color:'#C8BB9F',align:'center',wordWrap:{width:700}}).setOrigin(.5).setAlpha(.6);
+    this.add.text(cx,165,doms,{fontFamily:'monospace',fontSize:'10px',color:'#C8BB9F',align:'center',wordWrap:{width:700}}).setOrigin(.5).setAlpha(.55);
 
     // açıklama
-    const desc=this.add.text(cx,250,'Her toplum altı boyutlu kırılgan bir denge üzerinde durur.\nBir ada seç, dört krizi yönet, sözleşmeni inşa et.',{fontFamily:'Inter, sans-serif',fontSize:'13px',color:'#C8BB9F',align:'center',lineSpacing:8}).setOrigin(.5).setAlpha(.6);
+    this.add.text(cx,245,'Her toplum altı boyutlu kırılgan bir denge üzerinde durur.\nBir ada seç, dört krizi yönet, sözleşmeni inşa et.',{fontFamily:'Inter, sans-serif',fontSize:'13px',color:'#C8BB9F',align:'center',lineSpacing:8}).setOrigin(.5).setAlpha(.55);
 
     // buton
-    const btn=this.add.graphics();
-    btn.lineStyle(1,0xDEAE53,.4);btn.strokeRoundedRect(cx-110,320,220,42,4);
-    const btnTxt=this.add.text(cx,341,'ADALARI  GÖR',{fontFamily:'monospace',fontSize:'11px',color:'#DEAE53',letterSpacing:3}).setOrigin(.5);
-    const btnZone=this.add.zone(cx,341,220,42).setInteractive({useHandCursor:true});
-    btnZone.on('pointerover',()=>{btn.clear();btn.fillStyle(0xDEAE53,.1);btn.fillRoundedRect(cx-110,320,220,42,4);btn.lineStyle(1,0xDEAE53,.6);btn.strokeRoundedRect(cx-110,320,220,42,4);});
-    btnZone.on('pointerout',()=>{btn.clear();btn.lineStyle(1,0xDEAE53,.4);btn.strokeRoundedRect(cx-110,320,220,42,4);});
-    btnZone.on('pointerdown',()=>{this.cameras.main.fadeOut(400,0,0,0);this.time.delayedCall(400,()=>this.scene.start('Select'));});
+    const btnY=330;
+    const btnBg=this.add.graphics();
+    const drawBtn=(hover)=>{
+      btnBg.clear();
+      if(hover){btnBg.fillStyle(0xDEAE53,.12);btnBg.fillRoundedRect(cx-120,btnY,240,44,4);}
+      btnBg.lineStyle(1,0xDEAE53,hover?.6:.35);btnBg.strokeRoundedRect(cx-120,btnY,240,44,4);
+    };
+    drawBtn(false);
+    const btnTxt=this.add.text(cx,btnY+22,'ADALARI  GÖR',{fontFamily:'monospace',fontSize:'11px',color:'#DEAE53',letterSpacing:3}).setOrigin(.5);
+
+    const btnZone=this.add.zone(cx,btnY+22,240,44).setOrigin(.5).setInteractive({useHandCursor:true});
+    btnZone.on('pointerover',()=>drawBtn(true));
+    btnZone.on('pointerout',()=>drawBtn(false));
+    btnZone.on('pointerup',()=>{this.cameras.main.fadeOut(350,0,0,0);this.cameras.main.once('camerafadeoutcomplete',()=>this.scene.start('Select'));});
   }
 }
 
@@ -170,19 +177,19 @@ class SelectScene extends Phaser.Scene {
       zone.on('pointerout',()=>{
         this.tweens.add({targets:[nameTxt,tagTxt],duration:200,scale:1,ease:'Back.easeOut'});
       });
-      zone.on('pointerdown',()=>{this.startGame(isl);});
+      zone.on('pointerup',()=>{this.startGame(isl);});
     });
 
     // rastgele butonu
     const rndTxt=this.add.text(cx,640,'rastgele bir ada seç',{fontFamily:'monospace',fontSize:'10px',color:'#DEAE53',letterSpacing:2}).setOrigin(.5).setAlpha(.5).setInteractive({useHandCursor:true});
     rndTxt.on('pointerover',()=>rndTxt.setAlpha(.9));
     rndTxt.on('pointerout',()=>rndTxt.setAlpha(.5));
-    rndTxt.on('pointerdown',()=>this.startGame(ISLANDS[Math.floor(Math.random()*ISLANDS.length)]));
+    rndTxt.on('pointerup',()=>this.startGame(ISLANDS[Math.floor(Math.random()*ISLANDS.length)]));
   }
 
   startGame(isl){
     this.cameras.main.fadeOut(350,0,0,0);
-    this.time.delayedCall(350,()=>{
+    this.cameras.main.once('camerafadeoutcomplete',()=>{
       this.scene.start('Crisis',{island:isl,domains:{...isl.domains},turn:0,history:[],axis:0});
     });
   }
@@ -237,7 +244,7 @@ class CrisisScene extends Phaser.Scene {
       const zone=this.add.zone(cx,by+29,W-80,58).setInteractive({useHandCursor:true});
       zone.on('pointerover',()=>this.tweens.add({targets:[bg],duration:200,scaleX:1,props:{x:{from:40,to:48}},ease:'Back.easeOut'}));
       zone.on('pointerout',()=>this.tweens.add({targets:[bg],duration:200,props:{x:{to:40}},ease:'Back.easeOut'}));
-      zone.on('pointerdown',()=>this.choosePolicy(crisis,opt));
+      zone.on('pointerup',()=>this.choosePolicy(crisis,opt));
     });
   }
 
@@ -297,9 +304,9 @@ class CrisisScene extends Phaser.Scene {
     const continueTxt=this.add.text(fx,fy+40,'devam et >',{fontFamily:'monospace',fontSize:'11px',color:'#F2EBDB',letterSpacing:2}).setOrigin(.5).setAlpha(0).setInteractive({useHandCursor:true});
     this.tweens.add({targets:continueTxt,duration:400,alpha:.6,delay:600});
 
-    continueTxt.on('pointerdown',()=>{
+    continueTxt.on('pointerup',()=>{
       this.cameras.main.fadeOut(250,0,0,0);
-      this.time.delayedCall(250,()=>{
+      this.cameras.main.once('camerafadeoutcomplete',()=>{
         this.scene.start('Crisis',{island:this.island,domains:this.domains,turn:this.turn+1,history:this.history,axis:this.axis});
       });
     });
@@ -351,7 +358,7 @@ class FinalScene extends Phaser.Scene {
     const replay=this.add.text(cx,ry,'YENİDEN OYNA',{fontFamily:'monospace',fontSize:'10px',color:'#DEAE53',letterSpacing:3}).setOrigin(.5).setAlpha(.4).setInteractive({useHandCursor:true});
     replay.on('pointerover',()=>replay.setAlpha(.9));
     replay.on('pointerout',()=>replay.setAlpha(.4));
-    replay.on('pointerdown',()=>{this.cameras.main.fadeOut(300,0,0,0);this.time.delayedCall(300,()=>this.scene.start('Select'));});
+    replay.on('pointerup',()=>{this.cameras.main.fadeOut(300,0,0,0);this.cameras.main.once('camerafadeoutcomplete',()=>this.scene.start('Select'));});
   }
 }
 
