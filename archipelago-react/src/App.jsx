@@ -11,7 +11,7 @@ function Starfield() {
     let alive = true;
     const app = new Application();
     const init = async () => {
-      await app.init({ background: 'transparent', width: window.innerWidth, height: window.innerHeight, antialias: true });
+      await app.init({ backgroundAlpha: 0, width: window.innerWidth, height: window.innerHeight, antialias: true });
       if (!alive || !ref.current) { app.destroy(); return; }
       ref.current.appendChild(app.canvas);
       const stars = [];
@@ -49,7 +49,7 @@ function RadarChart({ values, color, size = 240, labelColor = '#12202E' }) {
     let alive = true;
     const app = new Application();
     const init = async () => {
-      await app.init({ width: size, height: size, background: 'transparent', antialias: true });
+      await app.init({ backgroundAlpha: 0, width: size, height: size, antialias: true });
       if (!alive || !ref.current) { app.destroy(); return; }
       ref.current.innerHTML = '';
       ref.current.appendChild(app.canvas);
