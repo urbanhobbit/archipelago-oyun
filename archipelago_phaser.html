@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ARCHIPELAGO — Phaser</title>
+<style>
+  body{margin:0;padding:0;background:#030810;overflow:hidden}
+  canvas{display:block}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
+</head>
+<body>
+<script>
+/* ===== GAME DATA (HTML'den direkt port) ===== */
+const DOMAIN_ORDER = ['CR','CSR','LEG','COH','JUS','RES'];
+const DOMAIN_NAMES = {
+  CR:'Yurttaşlık Hakları',CSR:'Yurttaş-Devlet',LEG:'Meşruiyet',
+  COH:'Toplumsal Uyum',JUS:'Adalet & Hakkaniyet',RES:'Kriz Direnci'
+};
+const IDEAL = {CR:7,CSR:7,LEG:7,COH:7,JUS:7,RES:7};
+
+const ISLANDS = [
+  {id:'polarized',name:'KUTUP ADASI',tag:'Kurumlar güçlü, toplum ikiye bölünmüş.',color:0xC1502E,domains:{CR:6,CSR:6,LEG:7,COH:2,JUS:3,RES:5}},
+  {id:'welfare',name:'REFAH ADASI',tag:'Dayanışma güçlü, güven aşınıyor.',color:0x2F6F62,domains:{CR:6,CSR:3,LEG:5,COH:8,JUS:6,RES:8}},
+  {id:'fragile',name:'KIRILGAN ADA',tag:'Kurumlar ayakta, kimse inanmıyor.',color:0x6B5B73,domains:{CR:4,CSR:2,LEG:2,COH:5,JUS:4,RES:6}},
+  {id:'divided',name:'BÖLÜNMÜŞ ADA',tag:'Haklar geniş, anlatılar çatışıyor.',color:0x5B4B8A,domains:{CR:8,CSR:5,LEG:6,COH:2,JUS:4,RES:4}},
+  {id:'authority',name:'OTORİTE ADASI',tag:'Devlet sağlam, haklar gölgede.',color:0x7B2D8E,domains:{CR:3,CSR:7,LEG:8,COH:5,JUS:3,RES:6}},
+  {id:'adaptive',name:'UYUM ADASI',tag:'Dayanışma yüksek, kurumlar eski.',color:0xD4783A,domains:{CR:5,CSR:4,LEG:4,COH:7,JUS:5,RES:8}}
+];
+
+const CRISES = [
+  {id:'mobilization',eyebrow:'MOBİLİZASYON',text:'Uzun süredir temsil edilmediğini düşünen bir grup sokaklarda. Daha fazla söz hakkı istiyorlar.',options:[
+    {label:'İstişare kurulu kur',hint:'Katılımı kurumsallaştırır',deltas:{LEG:1,CR:1},feedback:'Kurul talepleri kurumsal zemine taşıdı.'},
+    {label:'Görmezden gel, düzeni koru',hint:'Kısa vadeli sessizlik',deltas:{RES:1,LEG:-1,CR:-1},feedback:'Düzen korundu, güven sessizce aşındı.'},
+    {label:'Kısmi taviz ver, geçiştir',hint:'Zaman kazandırır',deltas:{COH:0.5,LEG:-0.5},feedback:'Kısa vadeli sakinlik, ertelenmiş hesaplaşma.'}
+  ]},
+  {id:'migration',eyebrow:'GÖÇ DALGASI',text:'Komşu adadan binlerce kişi kıyıya ulaştı. Kimi barınma yardımı istiyor, kimi sınırın kapanmasını.',options:[
+    {label:'Hızlı entegrasyon başlat',hint:'Yeni gelenleri içeri alır',deltas:{CR:1,COH:-0.5},feedback:'Entegrasyon adanın dengelerini yeniden şekillendirdi.'},
+    {label:'Geçici kabul merkezleri kur',hint:'Sorunu görünmez kılar',deltas:{RES:0.5,JUS:-0.5},feedback:'Merkezler doldu. Sorun gözden uzaklaştırıldı.'},
+    {label:'Sınırı kapat, halkoyuna sun',hint:'Çoğunluğun iradesi',deltas:{COH:1,CR:-1,JUS:-1},feedback:'Çoğunluk memnun, oy hakkı olmayanlar için sonuç baştan belliydi.'}
+  ]},
+  {id:'polarization',eyebrow:'KUTUPLAŞMA',text:'İki kamp birbirini varoluşsal tehdit olarak görüyor. Ortak gerçeklik zemini yok.',options:[
+    {label:'Çok taraflı müzakere forumu',hint:'Çatışmayı kanalize eder',deltas:{LEG:1,COH:0.5},feedback:'Forum çatışmayı konuşulabilir hale getirdi.'},
+    {label:'Bir tarafı bastır, diğerini destekle',hint:'Hızlı birlik görüntüsü',deltas:{COH:1,CR:-1,LEG:-1},feedback:'Bir kesim sustu ama gitmedi.'},
+    {label:'Gündemi değiştir, soğumaya bırak',hint:'Bekle ve gör',deltas:{LEG:-0.5,RES:-0.5},feedback:'Kutuplaşma manşetlerden çekildi, sofralardan çekilmedi.'}
+  ]},
+  {id:'recession',eyebrow:'EKONOMİK ŞOK',text:'Kur şoku binlerce haneyi vurdu. İcra dalgası kapıda. Bankalar sözleşme sözleşmedir diyor.',options:[
+    {label:'Borç yapılandırması + kamu desteği',hint:'Kırılganları sistemde tutar',deltas:{JUS:1,COH:0.5},feedback:'Tahliyeler durduruldu, destek paketi açıklandı.'},
+    {label:'Piyasaya bırak, müdahale etme',hint:'İlkesel tutarlılık',deltas:{RES:0.5,JUS:-1,COH:-1},feedback:'Piyasa dengesini buldu, binlerce aile bulamadı.'},
+    {label:'Yalnızca bankaları kurtar',hint:'Sistem ayakta, adalet yok',deltas:{LEG:0.5,JUS:-1,COH:-0.5},feedback:'Finansal sistem korundu. Kurallar kimin için?'}
+  ]}
+];
+
+const ARCHETYPES = [
+  {name:'Hobbesçu Güvenlikçi',desc:'Düzeni ve istikrarı her şeyin önüne koydun.'},
+  {name:'Lockeçu Hak Savunucusu',desc:'Bireysel hakları önceliklendirdin.'},
+  {name:'Rousseaucu Müzakereci',desc:'Katılımı ve ortak iradeyi merkeze aldın.'},
+  {name:'Rawlsçı Vasi',desc:'Kapsayıcılığı ve tarafsız adaleti önceliklendirdin.'},
+  {name:'Buchanancı Pazarlıkçı',desc:'Kararlarını pragmatik pazarlıkla şekillendirdin.'}
+];
+
+/* ===== PHASER CONFIG ===== */
+const W = 960, H = 680;
+
+/* ===== HELPERS ===== */
+function shuffle(a){const r=[...a];for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]];}return r;}
+function fmt(n){return (Math.round(n*10)/10).toString();}
+function colorHex(num){return '#'+num.toString(16).padStart(6,'0');}
+
+/* ===== BOOT SCENE ===== */
+class BootScene extends Phaser.Scene {
+  constructor(){super('Boot');}
+  create(){
+    // particle arkaplan
+    this.cameras.main.setBackgroundColor('#030810');
+    const particles=this.add.particles(0,0,'__WHITE',{
+      x:{min:0,max:W},y:{min:0,max:H},
+      speedX:{min:-4,max:4},speedY:{min:-3,max:3},
+      scale:{start:.3,end:0},alpha:{start:.5,end:0},
+      lifespan:6000,frequency:120,quantity:2,
+      tint:[0xC8BBDC,0xDEAE53,0x3D8A7A,0x8899BB]
+    });
+    // generate white texture
+    const g=this.make.graphics({add:false});
+    g.fillStyle(0xffffff);g.fillCircle(4,4,4);g.generateTexture('__WHITE',8,8);g.destroy();
+
+    this.scene.start('Onboard');
+  }
+}
+
+/* ===== ONBOARDING SCENE ===== */
+class OnboardScene extends Phaser.Scene {
+  constructor(){super('Onboard');}
+  create(){
+    const cx=W/2;
+
+    // başlık
+    const title=this.add.text(cx,50,'ARCHIPELAGO',{fontFamily:'Georgia,serif',fontSize:'52px',color:'#F2EBDB'}).setOrigin(.5);
+    this.tweens.add({targets:title,duration:1200,y:50,alpha:{from:0,to:1},scale:{from:.8,to:1},ease:'Back.easeOut'});
+
+    // ayraç
+    const rule=this.add.graphics();
+    rule.fillStyle(0xDEAE53,.4);rule.fillRect(cx-25,100,50,1);
+
+    // alt başlık
+    this.add.text(cx,118,'bir sosyal sözleşme yönetim oyunu',{fontFamily:'monospace',fontSize:'10px',color:'#C8BB9F',letterSpacing:4}).setOrigin(.5).setAlpha(0).setAlpha(1);
+
+    // domain özeti
+    const doms=DOMAIN_ORDER.map(k=>`  ${k}  ${DOMAIN_NAMES[k]}`).join('    ');
+    this.add.text(cx,170,doms,{fontFamily:'monospace',fontSize:'10px',color:'#C8BB9F',align:'center',wordWrap:{width:700}}).setOrigin(.5).setAlpha(.6);
+
+    // açıklama
+    const desc=this.add.text(cx,250,'Her toplum altı boyutlu kırılgan bir denge üzerinde durur.\nBir ada seç, dört krizi yönet, sözleşmeni inşa et.',{fontFamily:'Inter, sans-serif',fontSize:'13px',color:'#C8BB9F',align:'center',lineSpacing:8}).setOrigin(.5).setAlpha(.6);
+
+    // buton
+    const btn=this.add.graphics();
+    btn.lineStyle(1,0xDEAE53,.4);btn.strokeRoundedRect(cx-110,320,220,42,4);
+    const btnTxt=this.add.text(cx,341,'ADALARI  GÖR',{fontFamily:'monospace',fontSize:'11px',color:'#DEAE53',letterSpacing:3}).setOrigin(.5);
+    const btnZone=this.add.zone(cx,341,220,42).setInteractive({useHandCursor:true});
+    btnZone.on('pointerover',()=>{btn.clear();btn.fillStyle(0xDEAE53,.1);btn.fillRoundedRect(cx-110,320,220,42,4);btn.lineStyle(1,0xDEAE53,.6);btn.strokeRoundedRect(cx-110,320,220,42,4);});
+    btnZone.on('pointerout',()=>{btn.clear();btn.lineStyle(1,0xDEAE53,.4);btn.strokeRoundedRect(cx-110,320,220,42,4);});
+    btnZone.on('pointerdown',()=>{this.cameras.main.fadeOut(400,0,0,0);this.time.delayedCall(400,()=>this.scene.start('Select'));});
+  }
+}
+
+/* ===== ISLAND SELECT SCENE ===== */
+class SelectScene extends Phaser.Scene {
+  constructor(){super('Select');}
+  create(){
+    this.cameras.main.fadeIn(400);
+    const cx=W/2;
+    this.add.text(cx,32,'BİR ADA SEÇ',{fontFamily:'Georgia,serif',fontSize:'26px',color:'#F2EBDB'}).setOrigin(.5);
+
+    const cols=3,cardW=280,cardH=180,gap=20,startX=(W-(cols*cardW+(cols-1)*gap))/2+cardW/2;
+
+    ISLANDS.forEach((isl,i)=>{
+      const col=i%cols,row=Math.floor(i/cols);
+      const x=startX+col*(cardW+gap),y=85+row*(cardH+12);
+
+      // kart arkaplan
+      const g=this.add.graphics();
+      g.fillStyle(0xF2EBDB,.95);g.fillRoundedRect(x-cardW/2,y,cardW,cardH,6);
+      g.lineStyle(1,0x000000,.06);g.strokeRoundedRect(x-cardW/2,y,cardW,cardH,6);
+      // accent bar
+      g.fillStyle(isl.color,1);g.fillRoundedRect(x-cardW/2,y,cardW,4,{tl:6,tr:6,bl:0,br:0});
+
+      // başlık
+      const nameTxt=this.add.text(x,y+18,isl.name,{fontFamily:'Georgia,serif',fontSize:'18px',color:'#12202E'}).setOrigin(.5,0);
+      const tagTxt=this.add.text(x,y+44,isl.tag,{fontFamily:'Inter, sans-serif',fontSize:'10px',color:'#3E526A',align:'center',wordWrap:{width:cardW-40}}).setOrigin(.5,0).setAlpha(.8);
+
+      // bar chart
+      DOMAIN_ORDER.forEach((k,j)=>{
+        const bx=x-cardW/2+20,by=y+70+j*14;
+        const gb=this.add.graphics();
+        gb.fillStyle(0x12202E,.06);gb.fillRoundedRect(bx,by,cardW-40,8,3);
+        gb.fillStyle(isl.color,.5);gb.fillRoundedRect(bx,by,(cardW-40)*(isl.domains[k]/10),8,3);
+        this.add.text(bx-22,by+1,k,{fontFamily:'monospace',fontSize:'8px',color:'#3E526A'}).setAlpha(.5);
+      });
+
+      // etkileşim
+      const zone=this.add.zone(x,y+cardH/2,cardW,cardH).setInteractive({useHandCursor:true});
+      // animasyon - cards stagger in
+      zone.setAlpha(0).setScale(.9);
+      this.tweens.add({targets:zone,duration:500,alpha:1,scale:1,delay:i*60,ease:'Back.easeOut'});
+
+      zone.on('pointerover',()=>{
+        this.tweens.add({targets:[nameTxt,tagTxt],duration:200,scale:1.04,ease:'Back.easeOut'});
+      });
+      zone.on('pointerout',()=>{
+        this.tweens.add({targets:[nameTxt,tagTxt],duration:200,scale:1,ease:'Back.easeOut'});
+      });
+      zone.on('pointerdown',()=>{this.startGame(isl);});
+    });
+
+    // rastgele butonu
+    const rndTxt=this.add.text(cx,640,'rastgele bir ada seç',{fontFamily:'monospace',fontSize:'10px',color:'#DEAE53',letterSpacing:2}).setOrigin(.5).setAlpha(.5).setInteractive({useHandCursor:true});
+    rndTxt.on('pointerover',()=>rndTxt.setAlpha(.9));
+    rndTxt.on('pointerout',()=>rndTxt.setAlpha(.5));
+    rndTxt.on('pointerdown',()=>this.startGame(ISLANDS[Math.floor(Math.random()*ISLANDS.length)]));
+  }
+
+  startGame(isl){
+    this.cameras.main.fadeOut(350,0,0,0);
+    this.time.delayedCall(350,()=>{
+      this.scene.start('Crisis',{island:isl,domains:{...isl.domains},turn:0,history:[],axis:0});
+    });
+  }
+}
+
+/* ===== CRISIS SCENE ===== */
+class CrisisScene extends Phaser.Scene {
+  constructor(){super('Crisis');}
+  init(data){
+    this.island=data.island;
+    this.domains=data.domains;
+    this.turn=data.turn;
+    this.history=data.history;
+    this.axis=data.axis;
+    this.crises=shuffle(CRISES).slice(0,4);
+  }
+
+  create(){
+    this.cameras.main.fadeIn(300);
+    const cx=W/2;
+
+    if(this.turn>=this.crises.length){return this.finalize();}
+
+    // üst bar
+    this.add.text(30,24,this.island.name,{fontFamily:'Georgia,serif',fontSize:'22px',color:'#F2EBDB'});
+    this.add.text(W-30,24,`${this.turn+1} / 4`,{fontFamily:'monospace',fontSize:'22px',color:'#DEAE53'}).setOrigin(1,0);
+    const bar=this.add.graphics();bar.lineStyle(1,0xF2EBDB,.08);bar.lineBetween(30,56,W-30,56);
+
+    // radar chart
+    this.drawRadar(cx,260,95);
+
+    // kriz kartı
+    const crisis=this.crises[this.turn];
+    const cardG=this.add.graphics();
+    cardG.fillStyle(0xF2EBDB,.04);cardG.fillRoundedRect(40,330,W-80,80,6);
+    cardG.lineStyle(1,0xDEAE53,.3);cardG.strokeRoundedRect(40,330,W-80,80,6);
+    const arrow=this.add.graphics();arrow.lineStyle(2,0xDEAE53,.7);arrow.lineBetween(40,332,40,408);
+
+    this.add.text(58,340,`KRİZ · ${crisis.eyebrow}`,{fontFamily:'monospace',fontSize:'9px',color:'#DEAE53',letterSpacing:2}).setAlpha(.7);
+    const crisisText=this.add.text(58,360,crisis.text,{fontFamily:'Inter, sans-serif',fontSize:'13px',color:'#F2EBDB',wordWrap:{width:W-130},lineSpacing:4}).setAlpha(.85);
+
+    // seçenekler
+    crisis.options.forEach((opt,i)=>{
+      const by=430+i*70;
+      const bg=this.add.graphics();
+      bg.fillStyle(0xF2EBDB,.92);bg.fillRoundedRect(40,by,W-80,58,6);
+      bg.lineStyle(1,0x000000,.04);bg.strokeRoundedRect(40,by,W-80,58,6);
+
+      this.add.text(58,by+10,opt.label,{fontFamily:'Inter, sans-serif',fontSize:'13px',color:'#12202E',fontWeight:'600'});
+      this.add.text(58,by+34,opt.hint,{fontFamily:'Inter, sans-serif',fontSize:'10px',color:'#3E526A',fontStyle:'italic'});
+
+      const zone=this.add.zone(cx,by+29,W-80,58).setInteractive({useHandCursor:true});
+      zone.on('pointerover',()=>this.tweens.add({targets:[bg],duration:200,scaleX:1,props:{x:{from:40,to:48}},ease:'Back.easeOut'}));
+      zone.on('pointerout',()=>this.tweens.add({targets:[bg],duration:200,props:{x:{to:40}},ease:'Back.easeOut'}));
+      zone.on('pointerdown',()=>this.choosePolicy(crisis,opt));
+    });
+  }
+
+  drawRadar(cx,cy,r){
+    const g=this.add.graphics();
+    // grid
+    [.2,.4,.6,.8,1].forEach(f=>{
+      g.lineStyle(.5,0xF2EBDB,.08);
+      const pts=[];
+      DOMAIN_ORDER.forEach((_,i)=>{
+        const a=(-90+i*60)*Math.PI/180;
+        pts.push({x:cx+r*f*Math.cos(a),y:cy+r*f*Math.sin(a)});
+      });
+      g.beginPath();g.moveTo(pts[0].x,pts[0].y);
+      pts.forEach(p=>g.lineTo(p.x,p.y));
+      g.closePath();g.strokePath();
+    });
+    // axes
+    DOMAIN_ORDER.forEach((_,i)=>{
+      const a=(-90+i*60)*Math.PI/180;
+      g.lineStyle(.5,0xF2EBDB,.08);
+      g.lineBetween(cx,cy,cx+r*Math.cos(a),cy+r*Math.sin(a));
+    });
+    // data polygon
+    g.fillStyle(this.island.color,.22);
+    g.lineStyle(2,this.island.color,.7);
+    const pts=[];
+    DOMAIN_ORDER.forEach((_,i)=>{
+      const a=(-90+i*60)*Math.PI/180;
+      const v=Math.max(0,Math.min(10,this.domains[DOMAIN_ORDER[i]]));
+      pts.push({x:cx+r*(v/10)*Math.cos(a),y:cy+r*(v/10)*Math.sin(a)});
+    });
+    g.beginPath();g.moveTo(pts[0].x,pts[0].y);
+    pts.forEach(p=>g.lineTo(p.x,p.y));
+    g.closePath();g.fillPath();g.strokePath();
+    // labels
+    DOMAIN_ORDER.forEach((_,i)=>{
+      const a=(-90+i*60)*Math.PI/180;
+      const lx=cx+(r+22)*Math.cos(a),ly=cy+(r+22)*Math.sin(a);
+      this.add.text(lx,ly,DOMAIN_ORDER[i],{fontFamily:'monospace',fontSize:'10px',color:'#12202E',fontWeight:'700'}).setOrigin(.5).setAlpha(.7);
+    });
+    // center
+    g.fillStyle(this.island.color,.8);g.fillCircle(cx,cy,4);
+  }
+
+  choosePolicy(crisis,opt){
+    const before={...this.domains};
+    Object.keys(opt.deltas||{}).forEach(k=>{this.domains[k]=(this.domains[k]||0)+opt.deltas[k];});
+    DOMAIN_ORDER.forEach(k=>{this.domains[k]=Math.max(0,Math.min(10,this.domains[k]));});
+    this.history.push({turn:this.turn+1,choice:opt.label,crisis:crisis.eyebrow});
+
+    // geçici geribildirim
+    const fx=W/2,fy=640;
+    const fb=this.add.text(fx,fy,opt.feedback,{fontFamily:'Inter, sans-serif',fontSize:'12px',color:'#DEAE53',align:'center',wordWrap:{width:500}}).setOrigin(.5).setAlpha(0);
+    this.tweens.add({targets:fb,duration:400,alpha:1,y:fy-10});
+
+    const continueTxt=this.add.text(fx,fy+40,'devam et >',{fontFamily:'monospace',fontSize:'11px',color:'#F2EBDB',letterSpacing:2}).setOrigin(.5).setAlpha(0).setInteractive({useHandCursor:true});
+    this.tweens.add({targets:continueTxt,duration:400,alpha:.6,delay:600});
+
+    continueTxt.on('pointerdown',()=>{
+      this.cameras.main.fadeOut(250,0,0,0);
+      this.time.delayedCall(250,()=>{
+        this.scene.start('Crisis',{island:this.island,domains:this.domains,turn:this.turn+1,history:this.history,axis:this.axis});
+      });
+    });
+  }
+
+  finalize(){
+    const avgDev=DOMAIN_ORDER.reduce((s,k)=>s+Math.abs((this.domains[k]||5)-IDEAL[k]),0)/6;
+    const resilience=Math.max(0,Math.min(100,Math.round(100*(1-avgDev/7))));
+    this.scene.start('Final',{island:this.island,domains:this.domains,resilience,history:this.history});
+  }
+}
+
+/* ===== FINAL SCENE ===== */
+class FinalScene extends Phaser.Scene {
+  constructor(){super('Final');}
+  init(data){
+    this.island=data.island;
+    this.domains=data.domains;
+    this.resilience=data.resilience;
+    this.history=data.history;
+  }
+  create(){
+    this.cameras.main.fadeIn(400);
+    const cx=W/2;
+
+    // skor
+    const scr=this.add.text(cx,80,'0',{fontFamily:'Georgia,serif',fontSize:'80px',color:'#DEAE53'}).setOrigin(.5).setAlpha(0);
+    this.add.text(cx,38,'DİRENÇ PUANI',{fontFamily:'monospace',fontSize:'9px',color:'#C8BB9F',letterSpacing:3}).setOrigin(.5);
+    this.tweens.add({targets:scr,duration:1200,alpha:1,scale:{from:.3,to:1},ease:'Back.easeOut'});
+
+    let cnt=0;const target=this.resilience;
+    this.time.addEvent({delay:30,callback:()=>{cnt+=Math.ceil(target/30);if(cnt>=target){cnt=target;}scr.setText(cnt.toString());},repeat:30});
+
+    // arketip
+    const arch=ARCHETYPES[Math.floor(Math.random()*ARCHETYPES.length)];
+    this.add.text(cx,230,arch.name,{fontFamily:'Georgia,serif',fontSize:'24px',color:'#F2EBDB'}).setOrigin(.5);
+    this.add.text(cx,265,arch.desc,{fontFamily:'Inter, sans-serif',fontSize:'12px',color:'#C8BB9F',align:'center',wordWrap:{width:500}}).setOrigin(.5);
+
+    // kararlar
+    if(this.history.length){
+      this.add.text(cx,340,'KARARLARIN',{fontFamily:'monospace',fontSize:'9px',color:'#DEAE53',letterSpacing:2}).setOrigin(.5).setAlpha(.5);
+      this.history.forEach((h,i)=>{
+        this.add.text(cx,365+i*20,`#${h.turn}  ${h.choice}`,{fontFamily:'Inter, sans-serif',fontSize:'10px',color:'#C8BB9F'}).setOrigin(.5).setAlpha(.6);
+      });
+    }
+
+    // yeniden oyna
+    const ry=this.history.length?365+this.history.length*20+30:370;
+    const replay=this.add.text(cx,ry,'YENİDEN OYNA',{fontFamily:'monospace',fontSize:'10px',color:'#DEAE53',letterSpacing:3}).setOrigin(.5).setAlpha(.4).setInteractive({useHandCursor:true});
+    replay.on('pointerover',()=>replay.setAlpha(.9));
+    replay.on('pointerout',()=>replay.setAlpha(.4));
+    replay.on('pointerdown',()=>{this.cameras.main.fadeOut(300,0,0,0);this.time.delayedCall(300,()=>this.scene.start('Select'));});
+  }
+}
+
+/* ===== LAUNCH ===== */
+const config={
+  type:Phaser.CANVAS,
+  width:W,height:H,
+  parent:document.body,
+  backgroundColor:'#030810',
+  scene:[BootScene,OnboardScene,SelectScene,CrisisScene,FinalScene],
+  scale:{mode:Phaser.Scale.FIT,autoCenter:Phaser.Scale.CENTER_BOTH}
+};
+new Phaser.Game(config);
+</script>
+</body>
+</html>
