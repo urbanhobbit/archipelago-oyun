@@ -115,19 +115,13 @@ class OnboardScene extends Phaser.Scene {
 
     // buton
     const btnY=330;
-    const btnBg=this.add.graphics();
-    const drawBtn=(hover)=>{
-      btnBg.clear();
-      if(hover){btnBg.fillStyle(0xDEAE53,.12);btnBg.fillRoundedRect(cx-120,btnY,240,44,4);}
-      btnBg.lineStyle(1,0xDEAE53,hover?.6:.35);btnBg.strokeRoundedRect(cx-120,btnY,240,44,4);
-    };
-    drawBtn(false);
-    const btnTxt=this.add.text(cx,btnY+22,'ADALARI  GÖR',{fontFamily:'monospace',fontSize:'11px',color:'#DEAE53',letterSpacing:3}).setOrigin(.5);
-
-    const btnZone=this.add.zone(cx,btnY+22,240,44).setOrigin(.5).setInteractive({useHandCursor:true});
-    btnZone.on('pointerover',()=>drawBtn(true));
-    btnZone.on('pointerout',()=>drawBtn(false));
-    btnZone.on('pointerup',()=>{this.cameras.main.fadeOut(350,0,0,0);this.cameras.main.once('camerafadeoutcomplete',()=>this.scene.start('Select'));});
+    const btnBg=this.add.rectangle(cx,btnY+22,240,44).setStrokeStyle(1,0xDEAE53,.35).setFillStyle(0x000000,0);
+    btnBg.isStroked=true;btnBg.isFilled=true;
+    btnBg.setInteractive({useHandCursor:true});
+    btnBg.on('pointerover',()=>{btnBg.setFillStyle(0xDEAE53,.12);btnBg.setStrokeStyle(1,0xDEAE53,.6);});
+    btnBg.on('pointerout',()=>{btnBg.setFillStyle(0x000000,0);btnBg.setStrokeStyle(1,0xDEAE53,.35);});
+    btnBg.on('pointerup',()=>{this.cameras.main.fadeOut(350,0,0,0);this.cameras.main.once('camerafadeoutcomplete',()=>this.scene.start('Select'));});
+    this.add.text(cx,btnY+22,'ADALARI  GÖR',{fontFamily:'monospace',fontSize:'11px',color:'#DEAE53',letterSpacing:3}).setOrigin(.5);
   }
 }
 
@@ -166,18 +160,19 @@ class SelectScene extends Phaser.Scene {
       });
 
       // etkileşim
-      const zone=this.add.zone(x,y+cardH/2,cardW,cardH).setInteractive({useHandCursor:true});
+      const hit=this.add.rectangle(x,y+cardH/2,cardW,cardH,0xffffff,0).setInteractive({useHandCursor:true});
+      hit.alpha=0;
       // animasyon - cards stagger in
-      zone.setAlpha(0).setScale(.9);
-      this.tweens.add({targets:zone,duration:500,alpha:1,scale:1,delay:i*60,ease:'Back.easeOut'});
+      hit.setScale(.9);
+      this.tweens.add({targets:hit,duration:500,scale:1,delay:i*60,ease:'Back.easeOut'});
 
-      zone.on('pointerover',()=>{
+      hit.on('pointerover',()=>{
         this.tweens.add({targets:[nameTxt,tagTxt],duration:200,scale:1.04,ease:'Back.easeOut'});
       });
-      zone.on('pointerout',()=>{
+      hit.on('pointerout',()=>{
         this.tweens.add({targets:[nameTxt,tagTxt],duration:200,scale:1,ease:'Back.easeOut'});
       });
-      zone.on('pointerup',()=>{this.startGame(isl);});
+      hit.on('pointerup',()=>{this.startGame(isl);});
     });
 
     // rastgele butonu
@@ -241,10 +236,11 @@ class CrisisScene extends Phaser.Scene {
       this.add.text(58,by+10,opt.label,{fontFamily:'Inter, sans-serif',fontSize:'13px',color:'#12202E',fontWeight:'600'});
       this.add.text(58,by+34,opt.hint,{fontFamily:'Inter, sans-serif',fontSize:'10px',color:'#3E526A',fontStyle:'italic'});
 
-      const zone=this.add.zone(cx,by+29,W-80,58).setInteractive({useHandCursor:true});
-      zone.on('pointerover',()=>this.tweens.add({targets:[bg],duration:200,scaleX:1,props:{x:{from:40,to:48}},ease:'Back.easeOut'}));
-      zone.on('pointerout',()=>this.tweens.add({targets:[bg],duration:200,props:{x:{to:40}},ease:'Back.easeOut'}));
-      zone.on('pointerup',()=>this.choosePolicy(crisis,opt));
+      const hitBtn=this.add.rectangle(cx,by+29,W-80,58,0xffffff,0).setInteractive({useHandCursor:true});
+      hitBtn.alpha=0;
+      hitBtn.on('pointerover',()=>this.tweens.add({targets:[bg],duration:200,scaleX:1,props:{x:{from:40,to:48}},ease:'Back.easeOut'}));
+      hitBtn.on('pointerout',()=>this.tweens.add({targets:[bg],duration:200,props:{x:{to:40}},ease:'Back.easeOut'}));
+      hitBtn.on('pointerup',()=>this.choosePolicy(crisis,opt));
     });
   }
 
@@ -364,7 +360,7 @@ class FinalScene extends Phaser.Scene {
 
 /* ===== LAUNCH ===== */
 const config={
-  type:Phaser.CANVAS,
+  type:Phaser.AUTO,
   width:W,height:H,
   parent:document.body,
   backgroundColor:'#030810',
