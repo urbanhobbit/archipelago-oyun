@@ -117,11 +117,14 @@ class OnboardScene extends Phaser.Scene {
     const btnY=330;
     const btnBg=this.add.rectangle(cx,btnY+22,240,44).setStrokeStyle(1,0xDEAE53,.35).setFillStyle(0x000000,0);
     btnBg.isStroked=true;btnBg.isFilled=true;
-    btnBg.setInteractive({useHandCursor:true});
-    btnBg.on('pointerover',()=>{btnBg.setFillStyle(0xDEAE53,.12);btnBg.setStrokeStyle(1,0xDEAE53,.6);});
-    btnBg.on('pointerout',()=>{btnBg.setFillStyle(0x000000,0);btnBg.setStrokeStyle(1,0xDEAE53,.35);});
-    btnBg.on('pointerup',()=>{this.cameras.main.fadeOut(350,0,0,0);this.cameras.main.once('camerafadeoutcomplete',()=>this.scene.start('Select'));});
     this.add.text(cx,btnY+22,'ADALARI  GÖR',{fontFamily:'monospace',fontSize:'11px',color:'#DEAE53',letterSpacing:3}).setOrigin(.5);
+
+    const goSelect=()=>{this.cameras.main.fadeOut(350,0,0,0);this.cameras.main.once('camerafadeoutcomplete',()=>this.scene.start('Select'));};
+    // herhangi bir tıklama
+    this.input.on('pointerdown',goSelect);
+    // klavyeden ENTER veya BOŞLUK
+    this.input.keyboard.on('keydown-ENTER',goSelect);
+    this.input.keyboard.on('keydown-SPACE',goSelect);
   }
 }
 
@@ -174,6 +177,9 @@ class SelectScene extends Phaser.Scene {
       });
       hit.on('pointerup',()=>{this.startGame(isl);});
     });
+
+    // fallback: klavye ile ilerle
+    this.input.keyboard.on('keydown-ENTER',()=>this.startGame(ISLANDS[0]));
 
     // rastgele butonu
     const rndTxt=this.add.text(cx,640,'rastgele bir ada seç',{fontFamily:'monospace',fontSize:'10px',color:'#DEAE53',letterSpacing:2}).setOrigin(.5).setAlpha(.5).setInteractive({useHandCursor:true});
