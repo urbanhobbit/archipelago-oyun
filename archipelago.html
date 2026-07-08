@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>ARCHIPELAGO</title>
+<style>
+  :root{
+    --bg:#0F1B2B;
+    --bg-deep:#0A1420;
+    --parchment:#EDE6D6;
+    --parchment-dim:#DED3B9;
+    --ink:#1B2A3D;
+    --ink-soft:#3D4E63;
+    --teal:#2F6F62;
+    --terracotta:#C1502E;
+    --gold:#C99A3E;
+    --accent:#5B4B8A;
+    --font-display: 'Iowan Old Style','Palatino Linotype','Book Antiqua',Georgia,serif;
+    --font-body: -apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+    --font-mono: 'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:radial-gradient(ellipse at 50% -10%, #182C42 0%, var(--bg) 45%, var(--bg-deep) 100%);color:var(--parchment);font-family:var(--font-body);min-height:100vh}
+  body{padding:32px 20px 64px;}
+  #app{max-width:760px;margin:0 auto}
+  header.top{text-align:center;margin-bottom:28px}
+  header.top h1{font-family:var(--font-display);font-weight:400;font-size:38px;letter-spacing:2px;margin:0 0 4px;color:var(--parchment)}
+  header.top .rule{width:64px;height:1px;background:var(--gold);margin:12px auto}
+  header.top p{font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin:0;font-family:var(--font-mono)}
+
+  .screen{display:none;animation:fadein .5s ease}
+  .screen.active{display:block}
+  @keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+  .intro-text{text-align:center;max-width:520px;margin:0 auto 32px;color:var(--parchment-dim);font-size:15px;line-height:1.7}
+
+  .island-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:24px}
+  .island-card{background:var(--parchment);color:var(--ink);border-radius:2px;padding:18px 18px 20px;cursor:pointer;position:relative;border:1px solid rgba(0,0,0,.15);transition:transform .25s ease,box-shadow .25s ease}
+  .island-card:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(0,0,0,.35)}
+  .island-card .accent-bar{position:absolute;top:0;left:0;right:0;height:4px;border-radius:2px 2px 0 0}
+  .island-card h3{font-family:var(--font-display);font-size:19px;margin:8px 0 4px;font-weight:400}
+  .island-card p{font-size:12.5px;color:var(--ink-soft);margin:0;line-height:1.5}
+  .island-card .mini-domains{display:flex;gap:4px;margin-top:10px;flex-wrap:wrap}
+  .island-card .mini-domains span{font-family:var(--font-mono);font-size:10px;padding:2px 5px;border-radius:2px;background:rgba(27,42,61,.08);color:var(--ink-soft)}
+
+  .center-row{text-align:center;margin-top:8px}
+  button.ghost{background:transparent;border:1px solid var(--gold);color:var(--gold);font-family:var(--font-mono);font-size:12px;letter-spacing:1px;padding:10px 18px;border-radius:2px;cursor:pointer;text-transform:uppercase}
+  button.ghost:hover{background:rgba(201,154,62,.1)}
+
+  .topbar{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:18px;border-bottom:1px solid rgba(237,230,214,.15);padding-bottom:12px}
+  .topbar .label{font-family:var(--font-mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin:0 0 2px}
+  .topbar .value{font-family:var(--font-display);font-size:20px;margin:0}
+  .topbar .right{text-align:right}
+
+  .radar-wrap{background:var(--parchment);border-radius:2px;padding:20px;margin-bottom:20px;display:flex;gap:20px;align-items:center;flex-wrap:wrap;justify-content:center;border:1px solid rgba(0,0,0,.15)}
+  .radar-wrap svg{max-width:280px;width:100%;height:auto;animation:fadein .4s ease}
+  .legend{font-family:var(--font-mono);font-size:10.5px;color:var(--ink-soft);line-height:1.9;flex:1;min-width:180px}
+  .legend b{color:var(--ink)}
+  .legend .swatchrow{display:flex;align-items:center;gap:6px;margin-bottom:3px}
+  .legend .sw{width:9px;height:9px;border-radius:1px;display:inline-block}
+
+  .crisis-card{background:rgba(237,230,214,.06);border-left:2px solid var(--gold);padding:16px 18px;margin-bottom:18px}
+  .crisis-card .eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin:0 0 8px}
+  .crisis-card p.body{font-size:15.5px;line-height:1.7;margin:0;color:var(--parchment)}
+
+  .options{display:grid;gap:10px}
+  .opt-btn{background:var(--parchment);border:1px solid rgba(0,0,0,.15);color:var(--ink);text-align:left;padding:14px 16px;border-radius:2px;cursor:pointer;font-size:14.5px;font-family:var(--font-body);display:flex;justify-content:space-between;align-items:center;transition:background .2s ease}
+  .opt-btn:hover{background:var(--parchment-dim)}
+  .opt-btn .arrow{font-family:var(--font-mono);color:var(--ink-soft);font-size:13px}
+
+  .feedback-box{background:rgba(47,111,98,.15);border-left:2px solid var(--teal);padding:16px 18px;margin-bottom:16px}
+  .feedback-box p{margin:0 0 14px;font-size:14.5px;line-height:1.6;color:var(--parchment)}
+  .feedback-box .deltas{font-family:var(--font-mono);font-size:11px;color:var(--gold);margin-bottom:14px}
+
+  .final-hero{text-align:center;margin-bottom:8px}
+  .final-hero .score{font-family:var(--font-display);font-size:64px;margin:6px 0 0;color:var(--gold)}
+  .final-hero .score-label{font-family:var(--font-mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--parchment-dim)}
+
+  .archetype-card{background:var(--parchment);color:var(--ink);border-radius:2px;padding:22px 24px;margin:22px 0;border:1px solid rgba(0,0,0,.15)}
+  .archetype-card h3{font-family:var(--font-display);font-size:22px;margin:0 0 6px;font-weight:400}
+  .archetype-card .split{font-family:var(--font-mono);font-size:11px;color:var(--ink-soft);margin-bottom:10px}
+  .archetype-card p{font-size:14px;line-height:1.7;margin:0;color:var(--ink-soft)}
+
+  .critical-note{border-left:2px solid var(--terracotta);background:rgba(193,80,46,.12);padding:14px 16px;font-size:13px;line-height:1.6;color:var(--parchment-dim);margin-bottom:20px}
+  .critical-note b{color:var(--terracotta)}
+
+  .final-legend{display:flex;gap:18px;justify-content:center;margin-top:6px;font-family:var(--font-mono);font-size:11px;color:var(--parchment-dim);flex-wrap:wrap}
+  .final-legend span{display:flex;align-items:center;gap:6px}
+  .final-legend i{width:10px;height:10px;display:inline-block;border-radius:1px}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <h1>ARCHIPELAGO</h1>
+    <div class="rule"></div>
+    <p>bir sosyal sözleşme yönetim oyunu</p>
+  </header>
+
+  <section id="screen-start" class="screen active">
+    <p class="intro-text">Bir ada seç ya da kaderin sana birini seçsin. Her adanın kendi sosyal sözleşme dengesi var &mdash; bazı boyutlar güçlü, bazıları kırılgan. Dört krizi yönet, adanı dirençli kılmaya çalış.</p>
+    <div class="island-grid" id="islandGrid"></div>
+    <div class="center-row"><button class="ghost" id="randomBtn">rastgele bir ada seç</button></div>
+  </section>
+
+  <section id="screen-crisis" class="screen">
+    <div class="topbar">
+      <div><p class="label">ada</p><p class="value" id="islandNameLabel"></p></div>
+      <div class="right"><p class="label">kriz</p><p class="value" id="turnLabel"></p></div>
+    </div>
+    <div class="radar-wrap">
+      <svg id="radarSvg" viewBox="0 0 300 300"></svg>
+      <div class="legend">
+        <div class="swatchrow"><span class="sw" style="background:var(--accent)"></span><b>CR</b> &middot; yurttaşlık hakları</div>
+        <div class="swatchrow"><span class="sw" style="background:var(--accent)"></span><b>CSR</b> &middot; yurttaş&ndash;devlet ilişkisi</div>
+        <div class="swatchrow"><span class="sw" style="background:var(--accent)"></span><b>LEG</b> &middot; meşruiyet</div>
+        <div class="swatchrow"><span class="sw" style="background:var(--accent)"></span><b>COH</b> &middot; toplumsal uyum</div>
+        <div class="swatchrow"><span class="sw" style="background:var(--accent)"></span><b>JUS</b> &middot; adalet ve hakkaniyet</div>
+        <div class="swatchrow"><span class="sw" style="background:var(--accent)"></span><b>RES</b> &middot; kriz direnci</div>
+      </div>
+    </div>
+    <div class="crisis-card">
+      <p class="eyebrow" id="crisisEyebrow"></p>
+      <p class="body" id="crisisText"></p>
+    </div>
+    <div class="options" id="optionsList"></div>
+    <div class="feedback-box" id="feedbackBox" style="display:none">
+      <p id="feedbackText"></p>
+      <div class="deltas" id="feedbackDeltas"></div>
+      <button class="ghost" id="continueBtn">devam et</button>
+    </div>
+  </section>
+
+  <section id="screen-final" class="screen">
+    <div class="final-hero">
+      <p class="score-label">direnç puanı</p>
+      <p class="score" id="scoreValue">0</p>
+    </div>
+    <div class="radar-wrap">
+      <svg id="finalRadarSvg" viewBox="0 0 300 300"></svg>
+    </div>
+    <div class="final-legend">
+      <span><i style="background:var(--ink-soft);opacity:.5"></i>başlangıç</span>
+      <span><i style="background:var(--accent)"></i>final</span>
+      <span><i style="background:var(--gold)"></i>ideal ada</span>
+    </div>
+    <div id="criticalNoteWrap"></div>
+    <div class="archetype-card">
+      <p class="split" id="archetypeSplit"></p>
+      <h3 id="archetypeName"></h3>
+      <p id="archetypeDesc"></p>
+    </div>
+    <div class="center-row"><button class="ghost" id="replayBtn">yeniden oyna</button></div>
+  </section>
+</div>
+
+<script>
+const DOMAIN_ORDER = ['CR','CSR','LEG','COH','JUS','RES'];
+const IDEAL = {CR:7,CSR:7,LEG:7,COH:7,JUS:7,RES:7};
+
+const ISLANDS = [
+  {id:'polarized', name:'Kutup Adası', tag:'Güçlü kurumlar, kırılgan toplum', accent:'#C1502E', domains:{CR:6,CSR:6,LEG:7,COH:2,JUS:3,RES:5}},
+  {id:'welfare', name:'Refah Adası', tag:'Yüksek uyum, aşınan güven', accent:'#2F6F62', domains:{CR:6,CSR:3,LEG:5,COH:8,JUS:6,RES:8}},
+  {id:'fragile', name:'Kırılgan Ada', tag:'Zayıf meşruiyet, dirençli kurumlar', accent:'#6B5B73', domains:{CR:4,CSR:2,LEG:2,COH:5,JUS:4,RES:6}},
+  {id:'divided', name:'Bölünmüş Ada', tag:'Güçlü haklar, çatışan anlatılar', accent:'#5B4B8A', domains:{CR:8,CSR:5,LEG:6,COH:2,JUS:4,RES:4}},
+  {id:'exclusionary', name:'Dışlayıcı Ada', tag:'Sıkı uyum, dar kapsayıcılık', accent:'#C99A3E', domains:{CR:2,CSR:5,LEG:6,COH:8,JUS:2,RES:5}},
+  {id:'fragilewelfare', name:'Kırılgan Refah Adası', tag:'Genişleyen haklar, kalıcı eşitsizlik', accent:'#3A7CA5', domains:{CR:7,CSR:6,LEG:7,COH:5,JUS:3,RES:4}}
+];
+
+const CRISES = [
+  {id:'mobilization', eyebrow:'kriz · mobilizasyon', text:'Uzun süredir temsil edilmediğini düşünen bir grup, sokaklarda ve meclis önünde daha fazla söz hakkı istiyor.',
+    options:[
+      {label:'Resmi bir istişare kurulu kur', deltas:{LEG:1,CR:1}, conditional:{domain:'COH',threshold:5,above:{domain:'COH',delta:0},below:{domain:'COH',delta:-1}}, axis:{p:1,i:1,j:0.5}, feedback:'Kurul, talepleri kurumsal bir zemine taşıdı.'},
+      {label:'Talepleri görmezden gel, düzeni koru', deltas:{RES:1,LEG:-1,CR:-1}, axis:{p:-1,i:-1,j:-1}, feedback:'Düzen korundu, ama güven sessizce aşındı.'},
+      {label:'Kısmi tavizler ver, ana talepleri geçiştir', deltas:{COH:1,LEG:-1}, axis:{p:0,i:0,j:-0.3}, feedback:'Kısa vadeli sakinlik, ertelenmiş bir hesaplaşma.'}
+    ]},
+  {id:'migration', eyebrow:'kriz · göç dalgası', text:'Komşu adadan gelen binlerce kişi kıyıya ulaştı. Bazı mahalleler barınma yardımı istiyor, bazıları sınırların kapatılmasını.',
+    options:[
+      {label:'Hızlı entegrasyon programı başlat', deltas:{CR:1}, conditional:{domain:'COH',threshold:6,above:{domain:'COH',delta:-1},below:{domain:'COH',delta:1}}, axis:{p:0,i:1,j:0.5}, feedback:'Entegrasyon, mevcut dengeleri yeniden şekillendirdi.'},
+      {label:'Geçici kabul merkezleri kur, entegrasyonu ertele', deltas:{RES:0.5,JUS:-0.5}, axis:{p:0,i:0,j:-0.3}, feedback:'Sorun çözülmedi, sadece görünmez kılındı.'},
+      {label:'Sınırı kapat, halkoyuna sun', deltas:{COH:1,CR:-1,JUS:-1}, axis:{p:1,i:-1,j:-1}, feedback:'Çoğunluk memnun, dışlananlar görünmez oldu.'}
+    ]},
+  {id:'polarization', eyebrow:'kriz · kutuplaşma patlaması', text:'İki kamp birbirini illegitim ilan ediyor. Kamuoyu ortak bir gerçeklik zemini bulamıyor.',
+    options:[
+      {label:'Çok taraflı müzakere forumu kur', deltas:{LEG:1}, conditional:{domain:'LEG',threshold:6,above:{domain:'COH',delta:1},below:{domain:'COH',delta:0.3}}, axis:{p:1,i:0.5,j:0.3}, feedback:'Forum, çatışmayı kanalize eden bir zemin oldu.'},
+      {label:'Bir tarafı bastır, diğerini destekle', deltas:{COH:1,CR:-1,LEG:-1}, axis:{p:-1,i:-1,j:-1}, feedback:'Bir kesim rahatladı, diğeri dışlandı.'},
+      {label:'Sorunu görmezden gel, gündemi değiştir', deltas:{LEG:-1,RES:-0.5}, axis:{p:-0.3,i:0,j:-0.5}, feedback:'Kutuplaşma, görmezden gelinerek derinleşti.'}
+    ]},
+  {id:'environment', eyebrow:'kriz · çevresel şok', text:'İklim krizinin maliyetini kim ödeyecek? Kırsal ve kentsel kesimler arasında yeni bir eşitsizlik hattı açılıyor.',
+    options:[
+      {label:'Karbon vergisi koy, geliri eşit dağıt', deltas:{JUS:1,LEG:1}, conditional:{domain:'RES',threshold:6,above:{domain:'RES',delta:0},below:{domain:'RES',delta:-1}}, axis:{p:0.3,i:0.5,j:1}, feedback:'Adil paylaşım, uygulama kapasitesini zorladı.'},
+      {label:'Maliyeti şirketlere yükle, gizli sübvansiyon ver', deltas:{COH:0.5,JUS:-1}, axis:{p:-0.5,i:0,j:-1}, feedback:'Şeffaflık eksikliği, güveni örtük şekilde aşındırdı.'},
+      {label:'Krizi ertele, büyümeyi önceliklendir', deltas:{RES:0.5,JUS:-1,LEG:-0.5}, axis:{p:0,i:-0.5,j:-1}, feedback:'Bugünün rahatlığı, yarının faturasını büyüttü.'}
+    ]},
+  {id:'recession', eyebrow:'kriz · ekonomik resesyon', text:'Döviz kuru şoku, binlerce hanenin borcunu ödenemez hale getirdi. İcra ve tahliye dalgası başlıyor.',
+    options:[
+      {label:'Borç yapılandırması ve kamu desteği sağla', deltas:{JUS:1,COH:1}, conditional:{domain:'RES',threshold:6,above:{domain:'RES',delta:1},below:{domain:'RES',delta:0}}, axis:{p:0.3,i:0.5,j:1}, feedback:'Destek, kırılganları sistemin içinde tuttu.'},
+      {label:'Piyasaya bırak, müdahale etme', deltas:{RES:0.5,JUS:-1,COH:-1}, axis:{p:-0.3,i:-1,j:-1}, feedback:'Tutarlılık övüldü, bedeli en zayıflar ödedi.'},
+      {label:'Seçili kurumlara kurtarma paketi ver', deltas:{LEG:0.5,JUS:-1,COH:-0.5}, axis:{p:-0.5,i:-0.5,j:-1}, feedback:'Kurumlar kurtuldu, adalet algısı çöktü.'}
+    ]},
+  {id:'disinformation', eyebrow:'kriz · dezenformasyon', text:'Çelişen anlatılar kamusal gerçeklik zeminini eritiyor. Kimse kime güveneceğini bilmiyor.',
+    options:[
+      {label:'Bağımsız doğrulama kurumu kur', deltas:{LEG:1,CR:0.5}, axis:{p:0.5,i:0.3,j:0.5}, feedback:'Şeffaflık, yavaş ama kalıcı bir güven inşa etti.'},
+      {label:'Devlet kontrollü tek "doğru" kaynağı ilan et', deltas:{RES:0.5,CR:-1,LEG:-0.5}, axis:{p:-1,i:-1,j:-0.5}, feedback:'Kısa vadede sükunet, uzun vadede güvensizlik.'},
+      {label:'Meseleyi önemsizleştir, gündemden düşür', deltas:{LEG:-0.5,RES:-0.3}, axis:{p:-0.3,i:0,j:-0.3}, feedback:'Sorun çözülmeden gündem değişti.'}
+    ]}
+];
+
+const ARCHETYPES = [
+  {name:'Hobbesçu Güvenlikçi', vec:{p:-1,i:-1,j:-1}, desc:'Düzeni ve istikrarı her şeyin önüne koydun; güvenlik için katılımdan ve kapsayıcılıktan feragat ettin.'},
+  {name:'Lockeçu Hak Savunucusu', vec:{p:0.3,i:-0.5,j:0.2}, desc:'Bireysel hakları önceliklendirdin, ama kapsayıcılığı sınırlı tuttun.'},
+  {name:'Rousseaucu Müzakereci', vec:{p:1,i:1,j:0}, desc:'Katılımı ve ortak iradeyi önceliklendirdin; adalet sorununu çoğunluğun iradesine bıraktın.'},
+  {name:'Rawlsçı Vasi', vec:{p:0,i:1,j:1}, desc:'Kapsayıcılığı ve tarafsız adaleti önceliklendirdin, katılım sürecini bazen arka planda tuttun.'},
+  {name:'Buchanancı Pazarlıkçı', vec:{p:-0.3,i:-0.3,j:-1}, desc:'Kararlarını karşılıklı çıkar ve pragmatik pazarlık üzerinden şekillendirdin.'}
+];
+
+let state = {};
+
+function shuffle(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+}
+
+function pointsFor(values, cx, cy, maxR){
+  return DOMAIN_ORDER.map((k,i)=>{
+    const angle=(-90+i*60)*Math.PI/180;
+    const v=Math.max(0,Math.min(10,values[k]));
+    const r=maxR*(v/10);
+    return `${(cx+r*Math.cos(angle)).toFixed(1)},${(cy+r*Math.sin(angle)).toFixed(1)}`;
+  }).join(' ');
+}
+function hexPoints(radius,cx,cy){
+  return DOMAIN_ORDER.map((k,i)=>{
+    const angle=(-90+i*60)*Math.PI/180;
+    return `${(cx+radius*Math.cos(angle)).toFixed(1)},${(cy+radius*Math.sin(angle)).toFixed(1)}`;
+  }).join(' ');
+}
+const DOMAIN_LABEL_POS = [
+  {x:150,y:22,anchor:'middle'},
+  {x:262,y:88,anchor:'start'},
+  {x:262,y:212,anchor:'start'},
+  {x:150,y:284,anchor:'middle'},
+  {x:38,y:212,anchor:'end'},
+  {x:38,y:88,anchor:'end'}
+];
+
+function renderRadarSVG(layers){
+  const cx=150,cy=150,maxR=110;
+  let svg = '';
+  svg += `<g stroke="#1B2A3D" stroke-opacity="0.25" fill="none">`;
+  [0.2,0.4,0.6,0.8,1].forEach(f=>{
+    svg += `<polygon points="${hexPoints(maxR*f,cx,cy)}" stroke-dasharray="${f===1?'0':'2,3'}"/>`;
+  });
+  DOMAIN_ORDER.forEach((k,i)=>{
+    const angle=(-90+i*60)*Math.PI/180;
+    svg += `<line x1="${cx}" y1="${cy}" x2="${(cx+maxR*Math.cos(angle)).toFixed(1)}" y2="${(cy+maxR*Math.sin(angle)).toFixed(1)}"/>`;
+  });
+  svg += `</g>`;
+  layers.forEach(layer=>{
+    const pts = pointsFor(layer.values,cx,cy,maxR);
+    svg += `<polygon points="${pts}" fill="${layer.fill||'none'}" fill-opacity="${layer.fillOpacity!==undefined?layer.fillOpacity:0.28}" stroke="${layer.color}" stroke-width="${layer.width||2}" stroke-dasharray="${layer.dash||'0'}"/>`;
+  });
+  DOMAIN_ORDER.forEach((k,i)=>{
+    const p = DOMAIN_LABEL_POS[i];
+    svg += `<text x="${p.x}" y="${p.y}" text-anchor="${p.anchor}" font-family="SFMono-Regular,Consolas,monospace" font-size="12" fill="#1B2A3D">${k}</text>`;
+  });
+  svg += `<circle cx="${cx}" cy="${cy}" r="3" fill="#C99A3E"/>`;
+  return svg;
+}
+
+function buildIslandGrid(){
+  const grid = document.getElementById('islandGrid');
+  grid.innerHTML = '';
+  ISLANDS.forEach(isl=>{
+    const card = document.createElement('div');
+    card.className = 'island-card';
+    card.innerHTML = `<div class="accent-bar" style="background:${isl.accent}"></div>
+      <h3>${isl.name}</h3>
+      <p>${isl.tag}</p>
+      <div class="mini-domains">${DOMAIN_ORDER.map(k=>`<span>${k} ${isl.domains[k]}</span>`).join('')}</div>`;
+    card.addEventListener('click', ()=>startGame(isl));
+    grid.appendChild(card);
+  });
+}
+
+function startGame(island){
+  state = {
+    island,
+    domains: {...island.domains},
+    startDomains: {...island.domains},
+    turn: 0,
+    crises: shuffle(CRISES).slice(0,4),
+    axis: {p:0,i:0,j:0}
+  };
+  document.documentElement.style.setProperty('--accent', island.accent);
+  document.getElementById('islandNameLabel').textContent = island.name;
+  showScreen('crisis');
+  renderTurn();
+}
+
+function renderTurn(){
+  if(state.turn >= state.crises.length){ return finalize(); }
+  const crisis = state.crises[state.turn];
+  document.getElementById('turnLabel').textContent = (state.turn+1) + ' / ' + state.crises.length;
+  document.getElementById('crisisEyebrow').textContent = crisis.eyebrow;
+  document.getElementById('crisisText').textContent = crisis.text;
+  document.getElementById('radarSvg').innerHTML = renderRadarSVG([
+    {values: state.domains, color: state.island.accent, fill: state.island.accent, fillOpacity:0.3}
+  ]);
+  const list = document.getElementById('optionsList');
+  list.innerHTML = '';
+  list.style.display = 'grid';
+  document.getElementById('feedbackBox').style.display = 'none';
+  crisis.options.forEach((opt, idx)=>{
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.innerHTML = `<span>${opt.label}</span><span class="arrow">&rarr;</span>`;
+    btn.addEventListener('click', ()=>choosePolicy(crisis, opt));
+    list.appendChild(btn);
+  });
+}
+
+function choosePolicy(crisis, opt){
+  const snapshot = {...state.domains};
+  Object.keys(opt.deltas||{}).forEach(k=>{ state.domains[k] += opt.deltas[k]; });
+  let condLine = '';
+  if(opt.conditional){
+    const c = opt.conditional;
+    const applied = snapshot[c.domain] >= c.threshold ? c.above : c.below;
+    state.domains[applied.domain] += applied.delta;
+    condLine = ` (bağlamsal etki: ${applied.domain} ${applied.delta>=0?'+':''}${applied.delta})`;
+  }
+  DOMAIN_ORDER.forEach(k=>{ state.domains[k] = Math.max(0, Math.min(10, state.domains[k])); });
+  state.axis.p += opt.axis.p;
+  state.axis.i += opt.axis.i;
+  state.axis.j += opt.axis.j;
+
+  document.getElementById('optionsList').style.display = 'none';
+  const fb = document.getElementById('feedbackBox');
+  fb.style.display = 'block';
+  document.getElementById('feedbackText').textContent = opt.feedback;
+  const deltaStr = Object.keys(opt.deltas||{}).map(k=>`${k} ${opt.deltas[k]>=0?'+':''}${opt.deltas[k]}`).join('  ·  ') + condLine;
+  document.getElementById('feedbackDeltas').textContent = deltaStr;
+  document.getElementById('radarSvg').innerHTML = renderRadarSVG([
+    {values: state.domains, color: state.island.accent, fill: state.island.accent, fillOpacity:0.3}
+  ]);
+}
+
+document.getElementById('continueBtn').addEventListener('click', ()=>{
+  state.turn += 1;
+  renderTurn();
+});
+
+function finalize(){
+  const n = state.crises.length;
+  const avgAxis = {p: state.axis.p/n, i: state.axis.i/n, j: state.axis.j/n};
+
+  const distances = ARCHETYPES.map(a=>{
+    const d = Math.sqrt(Math.pow(a.vec.p-avgAxis.p,2)+Math.pow(a.vec.i-avgAxis.i,2)+Math.pow(a.vec.j-avgAxis.j,2));
+    return {a, d};
+  }).sort((x,y)=>x.d-y.d);
+  const top2 = distances.slice(0,2);
+  const w0 = 1/(top2[0].d+0.15), w1 = 1/(top2[1].d+0.15);
+  const pct0 = Math.round(100*w0/(w0+w1));
+  const pct1 = 100-pct0;
+
+  const avgDeviation = DOMAIN_ORDER.reduce((sum,k)=>sum+Math.abs(state.domains[k]-IDEAL[k]),0)/6;
+  const resilience = Math.max(0, Math.min(100, Math.round(100*(1-avgDeviation/7))));
+
+  document.getElementById('scoreValue').textContent = resilience;
+  document.getElementById('finalRadarSvg').innerHTML = renderRadarSVG([
+    {values: state.startDomains, color:'#5F5E5A', fill:'none', dash:'3,3', width:1.5},
+    {values: IDEAL, color:'#C99A3E', fill:'none', dash:'1,4', width:1.5},
+    {values: state.domains, color: state.island.accent, fill: state.island.accent, fillOpacity:0.32, width:2.5}
+  ]);
+
+  document.getElementById('archetypeSplit').textContent = `%${pct0} ${top2[0].a.name} · %${pct1} ${top2[1].a.name}`;
+  document.getElementById('archetypeName').textContent = top2[0].a.name;
+  document.getElementById('archetypeDesc').textContent = top2[0].a.desc;
+
+  const exclusionScore = (state.domains.CR + state.domains.JUS)/2;
+  const noteWrap = document.getElementById('criticalNoteWrap');
+  if(exclusionScore < 4){
+    noteWrap.innerHTML = `<div class="critical-note"><b>Not:</b> Bu profil, klasik sözleşme teorilerinin Carole Pateman ve Charles Mills tarafından eleştirilen bir körlüğü yansıtıyor &mdash; uyum ve istikrar, dışlanan kesimlerin hakları ve adalet algısı pahasına inşa edildi.</div>`;
+  } else {
+    noteWrap.innerHTML = '';
+  }
+
+  showScreen('final');
+}
+
+document.getElementById('randomBtn').addEventListener('click', ()=>{
+  startGame(ISLANDS[Math.floor(Math.random()*ISLANDS.length)]);
+});
+document.getElementById('replayBtn').addEventListener('click', ()=>{
+  showScreen('start');
+});
+
+buildIslandGrid();
+</script>
+</body>
+</html>

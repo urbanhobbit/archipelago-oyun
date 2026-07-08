@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ARCHIPELAGO — Sosyal Sözleşme Yönetim Oyunu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Inter:opsz,wght@14..32,300..500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0C1726;
+    --bg-deep:#080F1A;
+    --parchment:#EFE8D8;
+    --parchment-dim:#D4C8AE;
+    --ink:#162230;
+    --ink-soft:#3D5268;
+    --teal:#387F6F;
+    --terracotta:#C75234;
+    --gold:#D4A44C;
+    --accent:#6C5DA7;
+    --font-display:'Cormorant Garamond','Iowan Old Style','Palatino Linotype',Georgia,serif;
+    --font-body:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+    --font-mono:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:radial-gradient(ellipse at 50% -15%,#1A2E45 0%,var(--bg) 40%,var(--bg-deep) 100%);color:var(--parchment);font-family:var(--font-body);min-height:100vh}
+  body{padding:36px 20px 72px}
+  #app{max-width:800px;margin:0 auto}
+
+  header.top{text-align:center;margin-bottom:32px}
+  header.top h1{font-family:var(--font-display);font-weight:400;font-size:46px;letter-spacing:5px;margin:0;text-shadow:0 1px 12px rgba(212,164,76,.2)}
+  header.top .rule{width:40px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:14px auto 10px}
+  header.top p{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--parchment-dim);margin:0;font-family:var(--font-mono);opacity:.7}
+
+  .screen{display:none;animation:fadein .5s ease}
+  .screen.active{display:block}
+  @keyframes fadein{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+  @media (prefers-reduced-motion: reduce){.screen,.island-card{animation:none}}
+
+  .prose{max-width:560px;margin:0 auto;color:var(--parchment-dim);font-size:15px;line-height:1.8;text-align:center}
+  .prose b{color:var(--parchment);font-weight:500}
+
+  .domain-intro{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:30px 0}
+  .domain-chip{background:rgba(239,232,216,.05);border:1px solid rgba(239,232,216,.1);border-radius:3px;padding:15px 16px;transition:background .2s}
+  .domain-chip:hover{background:rgba(239,232,216,.1)}
+  .domain-chip .code{font-family:var(--font-mono);font-size:10px;color:var(--gold);letter-spacing:1.5px;opacity:.8}
+  .domain-chip h4{font-family:var(--font-display);font-weight:400;font-size:17px;margin:6px 0 6px}
+  .domain-chip p{font-size:13px;color:var(--parchment-dim);margin:0;line-height:1.6}
+
+  .center-row{text-align:center;margin-top:24px}
+  button{font-family:var(--font-mono)}
+  button.ghost{background:transparent;border:1px solid var(--gold);color:var(--gold);font-size:11px;letter-spacing:2px;padding:12px 24px;border-radius:3px;cursor:pointer;text-transform:uppercase;transition:all .25s}
+  button.ghost:hover{background:rgba(212,164,76,.12);box-shadow:0 0 20px rgba(212,164,76,.15)}
+  button.ghost:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+
+  .island-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:24px}
+  .island-card{background:linear-gradient(135deg,rgba(239,232,216,.97),rgba(239,232,216,.93));color:var(--ink);border-radius:4px;padding:18px 18px 20px;cursor:pointer;position:relative;border:1px solid rgba(0,0,0,.1);transition:transform .25s ease,box-shadow .25s ease;text-align:left;font-family:var(--font-body);box-shadow:0 2px 8px rgba(0,0,0,.15)}
+  .island-card:hover,.island-card:focus-visible{transform:translateY(-4px);box-shadow:0 16px 36px rgba(0,0,0,.45),0 0 0 1px rgba(212,164,76,.2);outline:none}
+  .island-card .accent-bar{position:absolute;top:0;left:0;right:0;height:4px;border-radius:4px 4px 0 0}
+  .island-card h3{font-family:var(--font-display);font-size:20px;margin:10px 0 4px;font-weight:400}
+  .island-card p.tag{font-size:13px;color:var(--ink-soft);margin:0 0 12px;line-height:1.5}
+  .bar-row{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+  .bar-row .k{font-family:var(--font-mono);font-size:9.5px;width:28px;color:var(--ink-soft);opacity:.7}
+  .bar-row .track{flex:1;height:5px;background:rgba(22,34,48,.1);border-radius:3px;overflow:hidden}
+  .bar-row .fill{height:100%;border-radius:3px;transition:width .4s ease}
+
+  .topbar{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:20px;border-bottom:1px solid rgba(239,232,216,.12);padding-bottom:12px}
+  .topbar .label{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin:0 0 2px;opacity:.8}
+  .topbar .value{font-family:var(--font-display);font-size:22px;margin:0}
+  .topbar .right{text-align:right}
+  .progress-dots{display:flex;gap:8px;justify-content:flex-end;margin-top:6px}
+  .progress-dots i{width:8px;height:8px;border-radius:50%;border:1px solid var(--gold);display:inline-block;transition:background .3s}
+  .progress-dots i.done{background:var(--gold);box-shadow:0 0 6px rgba(212,164,76,.4)}
+
+  .radar-wrap{background:linear-gradient(135deg,rgba(239,232,216,.97),rgba(239,232,216,.93));border-radius:6px;padding:22px;margin-bottom:20px;display:flex;gap:22px;align-items:center;flex-wrap:wrap;justify-content:center;border:1px solid rgba(0,0,0,.08);box-shadow:0 4px 20px rgba(0,0,0,.12)}
+  .radar-wrap svg{max-width:280px;width:100%;height:auto;transition:filter .5s ease;filter:drop-shadow(0 2px 8px rgba(0,0,0,.1))}
+  .radar-wrap svg.radar-flash{filter:drop-shadow(0 0 20px rgba(212,164,76,.6))}
+  .legend{font-family:var(--font-mono);font-size:10.5px;color:var(--ink-soft);line-height:1.6;flex:1;min-width:190px}
+  .legend .row{display:flex;justify-content:space-between;gap:8px;padding:4px 6px;border-radius:3px;cursor:help;transition:background .15s}
+  .legend .row:hover{background:rgba(22,34,48,.06)}
+  .legend .row b{color:var(--ink);font-weight:600}
+  .legend .row .val{font-weight:700;letter-spacing:.5px}
+  .legend .desc{font-size:10px;color:var(--ink-soft);padding:2px 6px 8px;display:none;line-height:1.5}
+  .legend .row.open + .desc{display:block}
+
+  .echo-banner{background:rgba(108,93,167,.2);border-left:2px solid var(--accent);padding:14px 18px;margin-bottom:16px;font-size:14px;line-height:1.6;color:var(--parchment-dim);border-radius:0 4px 4px 0}
+  .echo-banner .eyebrow{font-family:var(--font-mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:4px;filter:brightness(1.6)}
+
+  .crisis-card{background:rgba(239,232,216,.05);border-left:2px solid var(--gold);padding:20px 22px;margin-bottom:18px;border-radius:0 4px 4px 0}
+  .crisis-card .eyebrow{font-family:var(--font-mono);font-size:10.5px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin:0 0 10px;opacity:.85}
+  .crisis-card p.body{font-size:15px;line-height:1.75;margin:0}
+
+  .options{display:grid;gap:10px}
+  .opt-btn{background:linear-gradient(135deg,rgba(239,232,216,.96),rgba(239,232,216,.9));border:1px solid rgba(0,0,0,.08);color:var(--ink);text-align:left;padding:16px 18px;border-radius:4px;cursor:pointer;font-size:14px;font-family:var(--font-body);transition:all .2s;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+  .opt-btn:hover,.opt-btn:focus-visible{background:var(--parchment);box-shadow:0 4px 16px rgba(0,0,0,.2);outline:none}
+  .opt-btn .hint{display:block;font-size:12.5px;color:var(--ink-soft);font-style:italic;margin-top:4px;opacity:.85}
+
+  .feedback-box{background:rgba(56,127,111,.14);border-left:2px solid var(--teal);padding:18px 20px;margin-top:4px;border-radius:0 4px 4px 0}
+  .feedback-box p.main{margin:0 0 12px;font-size:14.5px;line-height:1.65}
+  .feedback-box p.why{margin:0 0 14px;font-size:14px;line-height:1.6;color:var(--parchment-dim)}
+  .feedback-box p.why b{color:var(--gold);font-weight:500}
+  .delta-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+  .delta-chips span{font-family:var(--font-mono);font-size:11px;padding:4px 10px;border-radius:3px;background:rgba(239,232,216,.08)}
+  .delta-chips span.up{color:#8FD3A8}
+  .delta-chips span.down{color:#E89B8B}
+  .lesson-flag{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.5px;color:var(--gold);border:1px dashed rgba(212,164,76,.4);padding:8px 12px;border-radius:3px;display:inline-block;margin-bottom:16px}
+
+  .interlude{background:var(--parchment);color:var(--ink);border-radius:2px;padding:26px 28px;border:1px solid rgba(0,0,0,.15)}
+  .interlude .eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin:0 0 10px}
+  .interlude h3{font-family:var(--font-display);font-weight:400;font-size:22px;margin:0 0 12px}
+  .interlude p{font-size:14.5px;line-height:1.7;color:var(--ink-soft);margin:0 0 16px}
+  .persona-grid{display:grid;gap:9px;margin-bottom:8px}
+  .persona-btn{background:rgba(27,42,61,.05);border:1px solid rgba(27,42,61,.2);color:var(--ink);text-align:left;padding:12px 14px;border-radius:2px;cursor:pointer;font-size:14px;font-family:var(--font-body)}
+  .persona-btn:hover,.persona-btn:focus-visible{background:rgba(27,42,61,.1);outline:none}
+
+  .final-hero{text-align:center;margin-bottom:8px}
+  .final-hero .score{font-family:var(--font-display);font-size:72px;margin:6px 0 0;color:var(--gold);text-shadow:0 2px 20px rgba(212,164,76,.3)}
+  .final-hero .score-label{font-family:var(--font-mono);font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--parchment-dim)}
+  .final-legend{display:flex;gap:18px;justify-content:center;margin:10px 0 22px;font-family:var(--font-mono);font-size:10.5px;color:var(--parchment-dim);flex-wrap:wrap}
+  .final-legend span{display:flex;align-items:center;gap:6px}
+  .final-legend i{width:10px;height:10px;display:inline-block;border-radius:2px}
+
+  .archetype-card{background:linear-gradient(135deg,rgba(239,232,216,.97),rgba(239,232,216,.93));color:var(--ink);border-radius:4px;padding:22px 26px;margin:20px 0;border:1px solid rgba(0,0,0,.08);box-shadow:0 2px 10px rgba(0,0,0,.1)}
+  .archetype-card h3{font-family:var(--font-display);font-size:24px;margin:0 0 6px;font-weight:400}
+  .archetype-card .split{font-family:var(--font-mono);font-size:11px;color:var(--ink-soft);margin-bottom:10px}
+  .archetype-card p{font-size:14px;line-height:1.75;margin:0;color:var(--ink-soft)}
+
+  .learning-card{background:rgba(239,232,216,.05);border:1px solid rgba(239,232,216,.1);border-radius:4px;padding:22px 26px;margin-bottom:20px}
+  .learning-card h4{font-family:var(--font-mono);font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold);margin:0 0 14px;font-weight:400;opacity:.8}
+  .learning-card p{font-size:14px;line-height:1.8;color:var(--parchment-dim);margin:0 0 14px}
+  .learning-card p:last-child{margin-bottom:0}
+  .learning-card p b{color:var(--parchment);font-weight:500}
+
+.critical-note{border-left:2px solid var(--terracotta);background:rgba(199,82,52,.14);padding:14px 18px;font-size:14px;line-height:1.6;color:var(--parchment-dim);margin-bottom:16px;border-radius:0 4px 4px 0}
+.critical-note b{color:#E8926F}
+
+/* --- iyileştirme stilleri --- */
+.history-panel{background:rgba(239,232,216,.04);border:1px solid rgba(239,232,216,.08);border-radius:4px;padding:16px 18px;margin-bottom:18px;max-height:180px;overflow-y:auto}
+.history-panel .h-label{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin:0 0 10px;opacity:.8}
+.history-panel .h-item{font-size:13px;color:var(--parchment-dim);padding:5px 0;border-bottom:1px solid rgba(239,232,216,.04);display:flex;gap:8px}
+.history-panel .h-item:last-child{border-bottom:none}
+.history-panel .h-turn{font-family:var(--font-mono);font-size:10px;color:var(--gold);min-width:24px;opacity:.7}
+
+.kb-hint{font-family:var(--font-mono);font-size:10px;color:var(--parchment-dim);text-align:center;margin-top:8px;opacity:.5;letter-spacing:1px}
+
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes pulse-glow{0%,100%{opacity:.3}50%{opacity:.6}}
+@keyframes count-up{from{opacity:0;transform:scale(.5)}to{opacity:1;transform:scale(1)}}
+@keyframes float-bg{0%{transform:translateY(0) scale(1)}50%{transform:translateY(-16px) scale(1.05)}100%{transform:translateY(0) scale(1)}}
+@keyframes card-in{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+.bg-ambient{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:hidden}
+.bg-ambient .orb{position:absolute;border-radius:50%;filter:blur(100px);opacity:.08;animation:float-bg 14s ease-in-out infinite}
+.bg-ambient .orb:nth-child(1){width:350px;height:350px;background:var(--accent);top:-8%;left:-8%;animation-delay:0s}
+.bg-ambient .orb:nth-child(2){width:240px;height:240px;background:var(--gold);bottom:-5%;right:-5%;animation-delay:-5s}
+.bg-ambient .orb:nth-child(3){width:280px;height:280px;background:var(--teal);top:35%;left:55%;animation-delay:-10s}
+#app{position:relative;z-index:1}
+
+.export-row{display:flex;gap:10px;justify-content:center;margin:16px 0;flex-wrap:wrap}
+button.small-ghost{background:transparent;border:1px solid rgba(239,232,216,.25);color:var(--parchment-dim);font-size:10.5px;letter-spacing:1.5px;padding:8px 16px;border-radius:3px;cursor:pointer;text-transform:uppercase;transition:all .2s;font-family:var(--font-mono)}
+button.small-ghost:hover{background:rgba(239,232,216,.06);border-color:var(--parchment-dim)}
+.toast{position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:var(--parchment);color:var(--ink);font-family:var(--font-mono);font-size:12px;padding:10px 22px;border-radius:4px;box-shadow:0 8px 28px rgba(0,0,0,.5);opacity:0;transition:opacity .3s ease;pointer-events:none;z-index:100}
+.toast.show{opacity:1}
+
+/* radar hover preview */
+.opt-btn{transition:all .2s}
+.opt-btn.preview-up{box-shadow:inset 3px 0 0 var(--teal)}
+.opt-btn.preview-down{box-shadow:inset 3px 0 0 var(--terracotta)}
+.legend .row.preview{background:rgba(22,34,48,.12)}
+.legend .row.preview-up .val{color:#6DBF8A}
+.legend .row.preview-down .val{color:#E8926F}
+
+/* kırılganlık */
+.frag-banner{background:rgba(199,82,52,.16);border-left:2px solid var(--terracotta);padding:12px 16px;margin-bottom:14px;font-size:13px;line-height:1.6;color:var(--parchment-dim);border-radius:0 4px 4px 0}
+.frag-banner .fb-label{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--terracotta);display:block;margin-bottom:4px}
+.legend .row.fragile .val{color:var(--terracotta)!important;font-weight:700}
+.legend .row.fragile b{color:var(--terracotta)}
+
+/* win-win rozeti */
+@keyframes win-pulse{0%,100%{box-shadow:0 0 0 0 rgba(143,211,168,.5)}50%{box-shadow:0 0 0 8px rgba(143,211,168,0)}}
+.lesson-flag.win{background:rgba(143,211,168,.16);border-color:var(--teal);color:var(--teal);animation:win-pulse 1.4s ease 3}
+
+.score-count{animation:count-up .6s ease both}
+.island-card{animation:card-in .4s ease both}
+.island-card:nth-child(2){animation-delay:.06s}
+.island-card:nth-child(3){animation-delay:.12s}
+.island-card:nth-child(4){animation-delay:.18s}
+.island-card:nth-child(5){animation-delay:.24s}
+.island-card:nth-child(6){animation-delay:.3s}
+.island-card:nth-child(7){animation-delay:.36s}
+.island-card:nth-child(8){animation-delay:.42s}
+</style>
+</head>
+<body>
+<div class="bg-ambient"><div class="orb"></div><div class="orb"></div><div class="orb"></div></div>
+<div class="toast" id="toast"></div>
+<div id="app">
+  <header class="top">
+    <h1>ARCHIPELAGO</h1>
+    <div class="rule"></div>
+    <p>bir sosyal sözleşme yönetim oyunu</p>
+  </header>
+
+  <!-- ONBOARDING -->
+  <section id="screen-onboard" class="screen active">
+    <p class="prose">Her toplum, yazılı olmayan bir anlaşma üzerinde durur: <b>sosyal sözleşme</b>. Bu anlaşma tek bir şey değildir &mdash; altı boyutun kırılgan dengesidir. Bir adayı yöneteceksin. Dört kriz gelecek. Her kararın bu dengeyi değiştirecek &mdash; ama nasıl değiştireceği, <b>adanın kendi tarihine</b> bağlı.</p>
+    <div class="domain-intro">
+      <div class="domain-chip"><span class="code">CR</span><h4>Yurttaşlık hakları</h4><p>Kimler tam yurttaş sayılıyor, hakları ne kadar güvencede?</p></div>
+      <div class="domain-chip"><span class="code">CSR</span><h4>Yurttaş&ndash;devlet ilişkisi</h4><p>İnsanlar devlete güveniyor mu, sesleri duyuluyor mu?</p></div>
+      <div class="domain-chip"><span class="code">LEG</span><h4>Meşruiyet</h4><p>Kurumların otoritesi kabul görüyor mu, kurallara rıza var mı?</p></div>
+      <div class="domain-chip"><span class="code">COH</span><h4>Toplumsal uyum</h4><p>Yurttaşlar birbirine güveniyor mu, farklılıklara rağmen dayanışma var mı?</p></div>
+      <div class="domain-chip"><span class="code">JUS</span><h4>Adalet ve hakkaniyet</h4><p>Yükler ve nimetler adil paylaşılıyor mu, kurallar tarafsız mı?</p></div>
+      <div class="domain-chip"><span class="code">RES</span><h4>Kriz direnci</h4><p>Sistem şoklara uyum sağlayabiliyor, kendini yenileyebiliyor mu?</p></div>
+    </div>
+    <p class="prose" style="font-size:14px">Amaç hiçbir boyutu maksimuma çıkarmak değil &mdash; <b>dengeli ve dirençli</b> bir bütün kurmak. Mükemmel ada yok; dengede duran ada var.</p>
+    <div class="center-row"><button class="ghost" id="toIslandsBtn">adaları gör</button></div>
+  </section>
+
+  <!-- ISLAND SELECT -->
+  <section id="screen-start" class="screen">
+    <p class="prose" style="margin-bottom:24px">Bir ada seç ya da kaderin sana birini seçsin. Her adanın kendi güçlü ve kırılgan yanları var &mdash; aynı politika her adada aynı sonucu vermez.</p>
+    <div class="island-grid" id="islandGrid"></div>
+    <div class="center-row"><button class="ghost" id="randomBtn">rastgele bir ada seç</button></div>
+  </section>
+
+  <!-- CRISIS LOOP -->
+  <section id="screen-crisis" class="screen">
+    <div class="topbar">
+      <div><p class="label">ada</p><p class="value" id="islandNameLabel"></p></div>
+      <div class="right">
+        <p class="label">kriz</p><p class="value" id="turnLabel"></p>
+        <div class="progress-dots" id="progressDots"></div>
+      </div>
+    </div>
+    <div class="radar-wrap">
+      <svg id="radarSvg" viewBox="0 0 300 300" role="img" aria-label="Sosyal sözleşme radar grafiği"></svg>
+      <div class="legend" id="legendBox"></div>
+    </div>
+    <div id="echoSlot"></div>
+    <div id="fragSlot"></div>
+    <div class="crisis-card">
+      <p class="eyebrow" id="crisisEyebrow"></p>
+      <p class="body" id="crisisText"></p>
+    </div>
+    <div class="history-panel" id="historyPanel" style="display:none">
+      <p class="h-label">karar geçmişi</p>
+      <div id="historyList"></div>
+    </div>
+    <div class="options" id="optionsList"></div>
+    <p class="kb-hint">kısayol: &lsaquo;1&rsaquo; &lsaquo;2&rsaquo; &lsaquo;3&rsaquo; seç · Enter devam</p>
+    <div class="feedback-box" id="feedbackBox" style="display:none">
+      <p class="main" id="feedbackText"></p>
+      <p class="why" id="feedbackWhy"></p>
+      <div class="delta-chips" id="deltaChips"></div>
+      <div id="lessonFlagSlot"></div>
+      <div><button class="ghost" id="continueBtn">devam et</button></div>
+    </div>
+  </section>
+
+  <!-- FINAL -->
+  <section id="screen-final" class="screen">
+    <div class="final-hero">
+      <p class="score-label">direnç puanı</p>
+      <p class="score" id="scoreValue">0</p>
+    </div>
+    <div class="radar-wrap">
+      <svg id="finalRadarSvg" viewBox="0 0 300 300" role="img" aria-label="Başlangıç, final ve ideal ada karşılaştırma grafiği"></svg>
+    </div>
+    <div class="final-legend">
+      <span><i style="background:#8A8578"></i>başlangıç</span>
+      <span><i style="background:var(--accent)" id="finalAccentSwatch"></i>final</span>
+      <span><i style="background:var(--gold)"></i>ideal ada</span>
+    </div>
+    <div id="criticalNoteWrap"></div>
+    <div class="archetype-card">
+      <p class="split" id="archetypeSplit"></p>
+      <h3 id="archetypeName"></h3>
+      <p id="archetypeDesc"></p>
+    </div>
+    <div class="learning-card">
+      <h4>bu oyunda ne yaşadın</h4>
+      <div id="learningSummary"></div>
+    </div>
+    <div class="history-panel" id="finalHistoryPanel" style="display:none">
+      <p class="h-label">kararların</p>
+      <div id="finalHistoryList"></div>
+    </div>
+    <div class="export-row">
+      <button class="small-ghost" id="copyBtn">📋 sonuçları kopyala</button>
+      <button class="small-ghost" id="downloadBtn">⬇ özeti indir (JSON)</button>
+    </div>
+    <div class="center-row"><button class="ghost" id="replayBtn">başka bir adayla yeniden oyna</button></div>
+  </section>
+</div>
+
+<script>
+const DOMAIN_ORDER = ['CR','CSR','LEG','COH','JUS','RES'];
+const DOMAIN_NAMES = {
+  CR:'Yurttaşlık hakları', CSR:'Yurttaş–devlet ilişkisi', LEG:'Meşruiyet',
+  COH:'Toplumsal uyum', JUS:'Adalet ve hakkaniyet', RES:'Kriz direnci'
+};
+const DOMAIN_DESCS = {
+  CR:'Kimler tam yurttaş sayılıyor, hakları ne kadar güvencede?',
+  CSR:'İnsanlar devlete güveniyor mu, sesleri duyuluyor mu?',
+  LEG:'Kurumların otoritesi kabul görüyor mu?',
+  COH:'Yurttaşlar birbirine güveniyor mu?',
+  JUS:'Yükler ve nimetler adil paylaşılıyor mu?',
+  RES:'Sistem şoklara uyum sağlayabiliyor mu?'
+};
+const IDEAL = {CR:7,CSR:7,LEG:7,COH:7,JUS:7,RES:7};
+
+const ISLANDS = [
+  {id:'polarized', name:'Kutup Adası', tag:'Kurumlar güçlü ama toplum ikiye bölünmüş; karşı taraf artık rakip değil, düşman.', accent:'#C1502E', domains:{CR:6,CSR:6,LEG:7,COH:2,JUS:3,RES:5}},
+  {id:'welfare', name:'Refah Adası', tag:'Uzun bir refah geleneği, güçlü dayanışma — ama devlete güven sessizce aşınıyor.', accent:'#2F6F62', domains:{CR:6,CSR:3,LEG:5,COH:8,JUS:6,RES:8}},
+  {id:'fragile', name:'Kırılgan Ada', tag:'Yıllardır süren siyasi istikrarsızlık; kurumlar ayakta ama kimse onlara inanmıyor.', accent:'#6B5B73', domains:{CR:4,CSR:2,LEG:2,COH:5,JUS:4,RES:6}},
+  {id:'divided', name:'Bölünmüş Ada', tag:'Haklar geniş, ama geçmişin iki anlatısı toplumu ortadan yarıyor.', accent:'#5B4B8A', domains:{CR:8,CSR:5,LEG:6,COH:2,JUS:4,RES:4}},
+  {id:'exclusionary', name:'Dışlayıcı Ada', tag:'İçeridekiler için sıkı bir dayanışma; dışarıda kalanlar için yüksek duvarlar.', accent:'#C99A3E', domains:{CR:2,CSR:5,LEG:6,COH:8,JUS:2,RES:5}},
+  {id:'fragilewelfare', name:'Kırılgan Refah Adası', tag:'Demokrasi genç ve canlı, ama eski eşitsizlikler yeni kurumların altında yaşamaya devam ediyor.', accent:'#3A7CA5', domains:{CR:7,CSR:6,LEG:7,COH:5,JUS:3,RES:4}},
+  {id:'authority', name:'Otorite Adası', tag:'Devlet sağlam, kurallar net — ama bireysel haklar gölgede kalmış; düzenin bedeli sessizce ödeniyor.', accent:'#7B2D8E', domains:{CR:3,CSR:7,LEG:8,COH:5,JUS:3,RES:6}},
+  {id:'adaptive', name:'Uyum Adası', tag:'Şoklara alışkın bir toplum; dayanışma yüksek ama kurumlar çağın gerisinde kalmış.', accent:'#D4783A', domains:{CR:5,CSR:4,LEG:4,COH:7,JUS:5,RES:8}}
+];
+
+const CRISES = [
+  {id:'mobilization', eyebrow:'kriz · mobilizasyon', text:'Uzun süredir temsil edilmediğini düşünen bir grup, sokaklarda ve meclis önünde daha fazla söz hakkı istiyor. Talepler büyüyor; sessiz kalmak da bir cevap sayılacak.',
+    options:[
+      {label:'Resmi bir istişare kurulu kur', hint:'Katılımı kurumsallaştırır — ama herkes davet edilirse mevcut denge sarsılabilir.',
+        deltas:{LEG:1,CR:1},
+        conditional:{domain:'COH',threshold:5,
+          above:{domain:'COH',delta:0, why:'Toplumsal uyum zaten güçlü olduğu için yeni sesler mevcut dokuyu sarsmadı.'},
+          below:{domain:'COH',delta:-1, why:'Uyum zaten kırılgandı; masaya yeni sesler eklemek kısa vadede mevcut gerilimleri görünür kıldı.'}},
+        axis:{p:1,i:1,j:0.5}, feedback:'Kurul, talepleri sokaktan kurumsal bir zemine taşıdı.'},
+      {label:'Talepleri görmezden gel, düzeni koru', hint:'Kısa vadede sessizlik — ama sessizlik rıza değildir.',
+        deltas:{RES:1,LEG:-1,CR:-1}, axis:{p:-1,i:-1,j:-1},
+        feedback:'Sokaklar sakinleşti. Ama dışlananlar unutmadı; güven sessizce aşındı.',
+        echo:{text:'Geçen dönemde görmezden geldiğin grup şimdi daha örgütlü ve daha öfkeli geri döndü. Sokaklar yeniden kaynıyor.', deltas:{LEG:-1.5,COH:-1}}},
+      {label:'Kısmi tavizler ver, ana talepleri geçiştir', hint:'Zaman kazandırır — ama ertelenen hesap faiziyle döner.',
+        deltas:{COH:0.5,LEG:-0.5}, axis:{p:0,i:0,j:-0.3},
+        feedback:'Kısa vadeli sakinlik sağlandı; asıl mesele masada durmaya devam ediyor.'}
+    ]},
+  {id:'migration', eyebrow:'kriz · göç dalgası', text:'Komşu adadan gelen binlerce kişi kıyıya ulaştı. Bazı mahalleler barınma yardımı topluyor; bazıları sınırların derhal kapatılmasını istiyor.',
+    options:[
+      {label:'Hızlı entegrasyon programı başlat', hint:'Yeni gelenleri içeri alır — sonucu, toplumun mevcut dokusuna bağlı.',
+        deltas:{CR:1},
+        conditional:{domain:'COH',threshold:6,
+          above:{domain:'COH',delta:-1, why:'Sıkı örülmüş toplumsal doku, yeni gelenlerin hızla dahil edilmesini kısa vadede bir tehdit olarak algıladı.'},
+          below:{domain:'COH',delta:1, why:'Uyum zaten zayıftı; ortak bir entegrasyon projesi, farklı kesimleri ilk kez aynı hedef etrafında buluşturdu.'}},
+        axis:{p:0,i:1,j:0.5}, feedback:'Entegrasyon programı adanın dengelerini yeniden şekillendirdi.'},
+      {label:'Geçici kabul merkezleri kur, kararı ertele', hint:'Kimseyi karşına almazsın — sorunu da çözmezsin.',
+        deltas:{RES:0.5,JUS:-0.5}, axis:{p:0,i:0,j:-0.3},
+        feedback:'Merkezler doldu. Sorun çözülmedi, sadece gözden uzaklaştırıldı.',
+        echo:{text:'Kabul merkezlerindeki koşullar basına sızdı. Ertelediğin karar şimdi bir adalet skandalına dönüştü — uluslararası gözlemciler yola çıktı.', deltas:{JUS:-1.5,LEG:-1}}},
+      {label:'Sınırı kapat, kararı halkoyuna sun', hint:'Çoğunluğun iradesi — ama oy kullanamayanların kaderi de oylanıyor.',
+        deltas:{COH:1,CR:-1,JUS:-1}, axis:{p:1,i:-1,j:-1},
+        feedback:'Çoğunluk kararından memnun. Oy hakkı olmayanlar için sonuç baştan belliydi.'}
+    ]},
+  {id:'polarization', eyebrow:'kriz · kutuplaşma patlaması', text:'İki kamp birbirini artık rakip değil, varoluşsal tehdit olarak görüyor. Ortak bir gerçeklik zemini kalmadı; her olgu iki ayrı hikayeye dönüşüyor.',
+    options:[
+      {label:'Çok taraflı müzakere forumu kur', hint:'Çatışmayı bitirmez — ama demokratik bir kanala akıtabilir.',
+        deltas:{LEG:1},
+        conditional:{domain:'LEG',threshold:6,
+          above:{domain:'COH',delta:1, why:'Kurumlara duyulan güven yeterince yüksekti; forum iki tarafın da kabul ettiği meşru bir zemin sundu — meşruiyet ve uyum birlikte yükseldi.'},
+          below:{domain:'COH',delta:0, why:'Kurumlara güven düşük olduğu için taraflar forumu da bir oyun sahası olarak gördü; zarar vermedi ama köprü de kuramadı.'}},
+        axis:{p:1,i:0.5,j:0.3}, feedback:'Forum kuruldu; çatışma yok olmadı ama konuşulabilir hale geldi.'},
+      {label:'Bir tarafı bastır, diğerini destekle', hint:'Hızlı bir "birlik" görüntüsü — bedelini karşı taraf öder.',
+        deltas:{COH:1,CR:-1,LEG:-1}, axis:{p:-1,i:-1,j:-1},
+        feedback:'Bir kesim zafer ilan etti. Diğeri sustu — ama gitmedi.',
+        echo:{text:'Bastırılan kesim yeraltında örgütlendi. Dışlanmanın öfkesi kurumlara yöneliyor — bir saldırı dalgası başladı.', deltas:{LEG:-1.5,RES:-1}}},
+      {label:'Gündemi değiştir, meseleyi soğumaya bırak', hint:'Bazen zaman iyileştirir. Bazen de derinleştirir.',
+        deltas:{LEG:-0.5,RES:-0.5}, axis:{p:-0.3,i:0,j:-0.5},
+        feedback:'Gündem değişti. Kutuplaşma manşetlerden çekildi ama sofralardan çekilmedi.'}
+    ]},
+  {id:'environment', eyebrow:'kriz · çevresel şok', text:'Ardışık kuraklık ve fırtınalar geldi. Dönüşümün maliyetini kimin ödeyeceği sorusu, kır ile kent arasında yeni bir eşitsizlik hattı açıyor.',
+    options:[
+      {label:'Karbon vergisi koy, geliri eşit pay olarak dağıt', hint:'Adil bir formül — ama uygulamak kurumsal kas ister.',
+        deltas:{JUS:1,LEG:0.5},
+        conditional:{domain:'RES',threshold:6,
+          above:{domain:'RES',delta:0.5, why:'Kurumsal kapasite güçlüydü; adil paylaşım sorunsuz uygulandı ve sistemin uyum yeteneğini de kanıtladı.'},
+          below:{domain:'RES',delta:-1, why:'Adil formül kağıt üzerinde iyiydi; ama zayıf uygulama kapasitesi gecikme ve kaosa yol açtı, sistemin direnci yıprandı.'}},
+        csrGate:{threshold:5, bonus:{domain:'COH',delta:0.5, msg:'Devlete güven sayesinde toplum vergi yükünü adil paylaştı: toplumsal uyum da yükseldi.'}},
+        axis:{p:0.3,i:0.5,j:1}, feedback:'Vergi ve eşit pay sistemi yürürlüğe girdi.'},
+      {label:'Maliyeti sessizce şirketlere yükle, sübvansiyonla dengele', hint:'Kimse fatura görmez — şimdilik.',
+        deltas:{COH:0.5,JUS:-1}, axis:{p:-0.5,i:0,j:-1},
+        feedback:'Görünürde kimse ödemedi. Perde arkası anlaşmalar er ya da geç perde önüne çıkar.'},
+      {label:'Dönüşümü ertele, büyümeyi önceliklendir', hint:'Bugünün rahatlığı, yarının borcu.',
+        deltas:{RES:0.5,JUS:-0.5,LEG:-0.5}, axis:{p:0,i:-0.5,j:-1},
+        feedback:'Ekonomi nefes aldı. İklim beklemedi.',
+        echo:{text:'Ertelediğin dönüşümün faturası geldi: yeni bir fırtına hazırlıksız altyapıyı vurdu. Sel suları en yoksul mahalleleri silip götürdü.', deltas:{RES:-1.5,JUS:-1}}}
+    ]},
+  {id:'recession', eyebrow:'kriz · ekonomik şok', text:'Kur şoku, binlerce hanenin borcunu bir gecede ödenemez hale getirdi. İcra ve tahliye dalgası kapıda; bankalar "sözleşme sözleşmedir" diyor.',
+    options:[
+      {label:'Borçları yeniden yapılandır, kamu desteği ver', hint:'Kırılganları sistemin içinde tutar — kapasiten yeterse.',
+        deltas:{JUS:1,COH:0.5},
+        conditional:{domain:'RES',threshold:6,
+          above:{domain:'RES',delta:1, why:'Güçlü kurumsal kapasite krizi fırsata çevirdi: destek hızlı ulaştı, sistem hem adil hem dirençli çıktı — iki boyut birlikte yükseldi.'},
+          below:{domain:'RES',delta:0, why:'Destek ulaştı ama gecikmeli ve düzensiz; niyet iyiydi, kapasite sınırlıydı.'}},
+        axis:{p:0.3,i:0.5,j:1}, feedback:'Yapılandırma paketi açıklandı; tahliyeler durduruldu.'},
+      {label:'Piyasaya bırak, müdahale etme', hint:'İlkesel tutarlılık — bedeli en kırılganlar öder.',
+        deltas:{RES:0.5,JUS:-1,COH:-1}, axis:{p:-0.3,i:-1,j:-1},
+        feedback:'Piyasa dengesini buldu. Binlerce aile bulamadı.'},
+      {label:'Yalnızca bankaları kurtar', hint:'Sistem ayakta kalır — adalet algısı kalmaz.',
+        deltas:{LEG:0.5,JUS:-1,COH:-0.5}, axis:{p:-0.5,i:-0.5,j:-1},
+        feedback:'Finansal sistem korundu. "Kurallar kimin için?" sorusu havada asılı kaldı.',
+        echo:{text:'Banka kurtarmasının bedelini ödeyenler sandıkta cevap verdi: sisteme öfke bir protesto dalgasına dönüştü. Meclis binası kuşatıldı.', deltas:{LEG:-1.5,CSR:-1}}}
+    ]},
+  {id:'disinformation', eyebrow:'kriz · dezenformasyon', text:'Çelişen anlatılar kamusal gerçeklik zeminini eritiyor. Sahte belgeler, manipüle görüntüler; kimse neye ve kime güveneceğini bilmiyor.',
+    options:[
+      {label:'Bağımsız doğrulama kurumu kur', hint:'Yavaş işler — ama güven zaten yavaş inşa edilir.',
+        deltas:{LEG:1,CR:0.5},
+        conditional:{domain:'CSR',threshold:5,
+          above:{domain:'CSR',delta:0.5, why:'Devlete güven yeterliydi; bağımsız kurum bu güveni bilgi alanına da taşıdı.'},
+          below:{domain:'CSR',delta:0, why:'Devlete güven düşük olduğu için yeni kurum da başta şüpheyle karşılandı; etkisi zamanla görülecek.'}},
+        axis:{p:0.5,i:0.3,j:0.5}, feedback:'Doğrulama kurumu çalışmaya başladı; ilk raporları tartışma yarattı ama okunuyor.'},
+      {label:'Tek resmi "doğru kaynak" ilan et', hint:'Kafa karışıklığı biter — düşünce özgürlüğüyle birlikte.',
+        deltas:{RES:0.5,CR:-1,LEG:-0.5}, axis:{p:-1,i:-1,j:-0.5},
+        feedback:'Tek ses düzeni sağlandı. Soru sormak lüks haline geldi.',
+        echo:{text:'Sansürün bedeli: bağımsız medya çöktü, ama resmi anlatıya da kimse inanmıyor. Bir sonraki krizde halk resmi verilere bile güvenmedi.', deltas:{LEG:-1.5,CSR:-1}}},
+      {label:'Önemsizleştir, gündemden düşür', hint:'Belki kendiliğinden söner. Belki de kök salar.',
+        deltas:{LEG:-0.5,RES:-0.3}, axis:{p:-0.3,i:0,j:-0.3},
+        feedback:'Gündem değişti; sahte anlatılar sessizce yayılmaya devam etti.'}
+    ]},
+  {id:'technology', eyebrow:'kriz · teknoloji ve dijital dönüşüm', text:'Yapay zeka ve otomasyon, adanın geleneksel sektörlerini hızla dönüştürüyor. Büyük teknoloji şirketleri yeni bir düzenleme talep ederken, işini kaybedenler sokakta. Mahremiyet mi, güvenlik mi, yenilik mi — hangisi önce gelir?',
+    options:[
+      {label:'Kapsamlı bir dijital haklar yasası çıkar', hint:'Hakları güvenceye alır — ama uygulama kapasitesi sınırlıysa etkisi gecikir.',
+        deltas:{CR:1,LEG:0.5},
+        conditional:{domain:'RES',threshold:6,
+          above:{domain:'RES',delta:1, why:'Kurumsal kapasite güçlüydü; yasa hızla uygulandı ve dijital haklar fiilen güvenceye alındı.'},
+          below:{domain:'CR',delta:-0.5, why:'Kapasite zayıf olunca yasa kağıt üzerinde kaldı; yurttaşlar vaat edilen hakların uygulanmadığını gördü, hayal kırıklığı oluştu.'}},
+        axis:{p:0.5,i:0.5,j:0.5}, feedback:'Dijital haklar yasası yürürlüğe girdi. Şimdi asıl sınav uygulamada.'},
+      {label:'Teknoloji şirketleriyle ortaklık kur, düzenlemeyi gevşek tut', hint:'Yenilik hızlanır — ama düzenleyen kim, düzenlenen kim?',
+        deltas:{COH:0.5,CR:-1,JUS:-0.5}, axis:{p:-0.5,i:-0.3,j:-0.5},
+        feedback:'Şirketler memnun. Verilerin kime ait olduğu sorusu ise yanıtsız kaldı.',
+        echo:{text:'Yıllar sonra bir veri skandalı patladı: şirketlerin elindeki kişisel veriler seçimleri etkilemek için kullanılmıştı. Dijital haklar fiilen rafa kalktı.', deltas:{LEG:-1.5,CR:-1}}},
+      {label:'Dönüşümü yavaşlat, geleneksel sektörleri koru', hint:'İşlerini korur — ama adayı küresel yarışta geride bırakır.',
+        deltas:{COH:1,JUS:0.5,RES:-1}, axis:{p:0,i:0.3,j:-0.3},
+        feedback:'Kısa vadede istihdam korundu. Uzun vadede ada rekabet gücünü kaybetti.'}
+    ]},
+  {id:'disaster', eyebrow:'kriz · doğal afet ve eşitsizlik', text:'Şiddetli bir deprem adanın en yoksul mahallelerini vurdu. Kurtarma ekiplerinin zengin bölgelere öncelik verdiği söylentisi yayılıyor. Mahalleler kendi aralarında örgütlenirken, merkezi yönetimin kapasitesi sorgulanıyor.',
+    options:[
+      {label:'Afet fonunu eşitlikçi dağıt, yoksul bölgelere öncelik ver', hint:'Adil bir yaklaşım — ama mevcut yapılar buna ne kadar hazır?',
+        deltas:{JUS:1,COH:1},
+        conditional:{domain:'CSR',threshold:5,
+          above:{domain:'CSR',delta:0.5, why:'Devlete güven yeterliydi; eşit dağıtım sorunsuz işledi, toplumun krize karşı direnci arttı.'},
+          below:{domain:'CSR',delta:-0.5, why:'Devlete güven düşük olunca eşit dağıtım vaadi bile şüpheyle karşılandı; yardımların bir kısmı hedefine ulaşamadı.'}},
+        csrGate:{threshold:5, bonus:{domain:'RES',delta:0.5, msg:'Devlete güven sayesinde afet yönetimi koordineli işledi, kriz direnci de güçlendi.'}},
+        axis:{p:0.3,i:0.5,j:1}, feedback:'Yardımlar açıklandı; en kırılgan mahalleler ilk sırada.'},
+      {label:'Kurtarmayı özel sektöre devret, merkezi yönetimi küçült', hint:'Hızlı aksiyon — ama kâr amacı güden kurumlar herkese eşit mi bakar?',
+        deltas:{RES:1,JUS:-1,CR:-0.5}, axis:{p:-0.5,i:-0.5,j:-0.5},
+        feedback:'Özel şirketler hızlı hareket etti. Ödeme gücü olmayan mahalleler beklemeye devam etti.',
+        echo:{text:'Özel kurtarma şirketlerinin fiyatları şişirdiği ortaya çıktı. Yoksul mahalleler yardım alamadığı için salgın hastalık yayılıyor.', deltas:{JUS:-1.5,COH:-1}}},
+      {label:'Dayanışma ağlarını destekle, mahalle komitelerine yetki devret', hint:'Tabandan örgütlenme — güçlü uyum ister, adalet garantisi vermez.',
+        deltas:{COH:1,LEG:-0.5,RES:0.5}, axis:{p:0.5,i:0.5,j:0},
+        feedback:'Mahalle komiteleri kendi çözümlerini üretti. Merkezi koordinasyon eksikliği bazı bölgeleri açıkta bıraktı.'}
+    ]}
+];
+
+const PERSONAS = [
+  {id:'excluded', label:'Yeni gelmiş, oy hakkı olmayan bir göçmen', focus:'CR', weight:0.5, 
+   desc:'Haklar ve kapsayıcılık konularına daha duyarlı hale geldin — ',
+   deltaDesc:'CR değişimleri %50 daha güçlü hissettiriyor'},
+  {id:'debtor', label:'Borç batağındaki bir dar gelirli hane reisi', focus:'JUS', weight:0.5,
+   desc:'Adalet ve hakkaniyet konularına daha duyarlı hale geldin — ',
+   deltaDesc:'JUS değişimleri %50 daha güçlü hissettiriyor'},
+  {id:'minority', label:'Bastırılan kampın genç bir üyesi', focus:'COH', weight:0.5,
+   desc:'Toplumsal uyum ve aidiyet konularına daha duyarlı hale geldin — ',
+   deltaDesc:'COH değişimleri %50 daha güçlü hissettiriyor'},
+  {id:'rural', label:'Dönüşümün maliyetini omuzlayan bir kırsal üretici', focus:'JUS', weight:0.4,
+   desc:'Adalet ve kriz direnci konularına daha duyarlı hale geldin — ',
+   deltaDesc:'JUS değişimleri %40 daha güçlü hissettiriyor'}
+];
+
+const ARCHETYPES = [
+  {name:'Hobbesçu Güvenlikçi', vec:{p:-1,i:-1,j:-1}, desc:'Düzeni ve istikrarı her şeyin önüne koydun; güvenlik uğruna katılımdan ve kapsayıcılıktan feragat ettin. Sözleşmen güçlü bir otoriteye yaslanıyor — o otorite sarsılırsa geriye ne kalır?'},
+  {name:'Lockeçu Hak Savunucusu', vec:{p:0.3,i:-0.5,j:0.2}, desc:'Bireysel hakları ve sınırlı yönetimi önceliklendirdin; ama sözleşmenin kapısı herkese aynı genişlikte açık değildi.'},
+  {name:'Rousseaucu Müzakereci', vec:{p:1,i:1,j:0}, desc:'Katılımı ve ortak iradeyi merkeze koydun. Peki çoğunluğun iradesi, azınlıkta kalanlar için ne zaman bir tehdide dönüşür?'},
+  {name:'Rawlsçı Vasi', vec:{p:0,i:1,j:1}, desc:'Kapsayıcılığı ve tarafsız adaleti önceliklendirdin — sanki hangi konumda doğacağını bilmiyormuşsun gibi karar verdin. Süreçlerin katılımcılığı bazen arka planda kaldı.'},
+  {name:'Buchanancı Pazarlıkçı', vec:{p:-0.3,i:-0.3,j:-1}, desc:'Kararlarını karşılıklı çıkar ve pragmatik pazarlık mantığıyla verdin; ilkeler değil, anlaşmalar yönetti. Pazarlık masasına oturamayanlar ne olacak?'}
+];
+
+let state = {};
+
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('screen-'+id).classList.add('active');window.scrollTo({top:0,behavior:'smooth'});}
+function fmt(n){return (Math.round(n*10)/10).toString();}
+function calcResilience(domains,startDomains){
+  const startAvg=DOMAIN_ORDER.reduce((s,k)=>s+Math.abs(startDomains[k]-IDEAL[k]),0)/6;
+  const finalAvg=DOMAIN_ORDER.reduce((s,k)=>s+Math.abs(domains[k]-IDEAL[k]),0)/6;
+  const absolute=Math.max(0,100*(1-finalAvg/7));
+  const improvement=startAvg>0?(startAvg-finalAvg)/startAvg:0;
+  const cappedImprovement=Math.max(0,Math.min(1,improvement));
+  return Math.max(0,Math.min(100,Math.round(0.65*absolute+0.35*cappedImprovement*100)));
+}
+
+function pointsFor(values,cx,cy,maxR){
+  return DOMAIN_ORDER.map((k,i)=>{
+    const angle=(-90+i*60)*Math.PI/180;
+    const v=Math.max(0,Math.min(10,values[k]));
+    const r=maxR*(v/10);
+    return `${(cx+r*Math.cos(angle)).toFixed(1)},${(cy+r*Math.sin(angle)).toFixed(1)}`;
+  }).join(' ');
+}
+function hexPoints(radius,cx,cy){
+  return DOMAIN_ORDER.map((k,i)=>{
+    const angle=(-90+i*60)*Math.PI/180;
+    return `${(cx+radius*Math.cos(angle)).toFixed(1)},${(cy+radius*Math.sin(angle)).toFixed(1)}`;
+  }).join(' ');
+}
+const LABEL_POS=[{x:150,y:22,a:'middle'},{x:262,y:88,a:'start'},{x:262,y:212,a:'start'},{x:150,y:284,a:'middle'},{x:38,y:212,a:'end'},{x:38,y:88,a:'end'}];
+
+function renderRadarSVG(layers){
+  const cx=150,cy=150,maxR=110;
+  let svg='';
+  svg+=`<defs><radialGradient id="dotGrad"><stop offset="0%" stop-color="${layers[layers.length-1].color}"/><stop offset="100%" stop-color="${layers[layers.length-1].color}" stop-opacity=".3"/></radialGradient></defs>`;
+  svg+=`<g stroke="${layers[0].color||'#162230'}" stroke-opacity="0.15" fill="none">`;
+  [0.2,0.4,0.6,0.8,1].forEach(f=>{
+    svg+=`<polygon points="${hexPoints(maxR*f,cx,cy)}" stroke-width="${f===1?1:0.5}" stroke-dasharray="${f===1?'0':'3,4'}"/>`;
+  });
+  DOMAIN_ORDER.forEach((k,i)=>{
+    const a=(-90+i*60)*Math.PI/180;
+    svg+=`<line x1="${cx}" y1="${cy}" x2="${(cx+maxR*Math.cos(a)).toFixed(1)}" y2="${(cy+maxR*Math.sin(a)).toFixed(1)}" stroke-width="0.5"/>`;
+  });
+  svg+=`</g>`;
+  layers.forEach(l=>{
+    svg+=`<polygon points="${pointsFor(l.values,cx,cy,maxR)}" fill="${l.fill||'none'}" fill-opacity="${l.fillOpacity!==undefined?l.fillOpacity:0.22}" stroke="${l.color}" stroke-width="${l.width||2}" stroke-linejoin="round" stroke-dasharray="${l.dash||'0'}"/>`;
+  });
+  DOMAIN_ORDER.forEach((k,i)=>{
+    const p=LABEL_POS[i];
+    svg+=`<text x="${p.x}" y="${p.y}" text-anchor="${p.a}" font-family="'SFMono-Regular',Consolas,monospace" font-size="11" fill="#162230" font-weight="600" letter-spacing="1">${k}</text>`;
+  });
+  svg+=`<circle cx="${cx}" cy="${cy}" r="4" fill="url(#dotGrad)"/>`;
+  return svg;
+}
+
+function buildIslandGrid(){
+  const grid=document.getElementById('islandGrid');
+  grid.innerHTML='';
+  ISLANDS.forEach(isl=>{
+    const card=document.createElement('button');
+    card.className='island-card';
+    card.setAttribute('aria-label',isl.name+': '+isl.tag);
+    let bars='';
+    DOMAIN_ORDER.forEach(k=>{
+      bars+=`<div class="bar-row"><span class="k">${k}</span><span class="track"><span class="fill" style="width:${isl.domains[k]*10}%;background:${isl.accent}"></span></span></div>`;
+    });
+    card.innerHTML=`<div class="accent-bar" style="background:${isl.accent}"></div><h3>${isl.name}</h3><p class="tag">${isl.tag}</p>${bars}`;
+    card.addEventListener('click',()=>startGame(isl));
+    grid.appendChild(card);
+  });
+}
+
+function renderLegend(){
+  const box=document.getElementById('legendBox');
+  box.innerHTML='';
+  DOMAIN_ORDER.forEach(k=>{
+    const row=document.createElement('div');
+    row.className='row'+(state.domains[k]<3?' fragile':'');
+    row.innerHTML=`<span><b>${k}</b> · ${DOMAIN_NAMES[k]}</span><span class="val">${fmt(state.domains[k])}</span>`;
+    row.addEventListener('click',()=>row.classList.toggle('open'));
+    const desc=document.createElement('div');
+    desc.className='desc';
+    desc.textContent=DOMAIN_DESCS[k];
+    box.appendChild(row);box.appendChild(desc);
+  });
+}
+
+function startGame(island){
+  state={
+    island,
+    domains:{...island.domains},
+    startDomains:{...island.domains},
+    turn:0,
+    crises:shuffle(CRISES).slice(0,4),
+    axis:{p:0,i:0,j:0},
+    pendingEchoes:[],
+    lessons:{contextual:[],coRaise:[],tradeoff:[],echo:[]},
+    history:[]
+  };
+  document.documentElement.style.setProperty('--accent',island.accent);
+  document.getElementById('islandNameLabel').textContent=island.name;
+  showScreen('crisis');
+  renderTurn();
+}
+
+function renderProgress(){
+  const dots=document.getElementById('progressDots');
+  dots.innerHTML='';
+  for(let i=0;i<state.crises.length;i++){
+    const d=document.createElement('i');
+    if(i<state.turn)d.classList.add('done');
+    dots.appendChild(d);
+  }
+}
+
+function renderHistory(){
+  const panel=document.getElementById('historyPanel');
+  const list=document.getElementById('historyList');
+  if(state.history.length===0){panel.style.display='none';return;}
+  panel.style.display='block';
+  list.innerHTML=state.history.map(h=>`<div class="h-item"><span class="h-turn">#${h.turn}</span><span>${h.choice}</span></div>`).join('');
+}
+
+function renderFragility(){
+  const slot=document.getElementById('fragSlot');
+  const fragile=DOMAIN_ORDER.filter(k=>state.domains[k]<3);
+  if(!fragile.length){slot.innerHTML='';return;}
+  const names=fragile.map(k=>DOMAIN_NAMES[k]+' ('+k+': '+fmt(state.domains[k])+')').join(', ');
+  slot.innerHTML=`<div class="frag-banner"><span class="fb-label">⚠ kırılganlık uyarısı</span>${names} — bu boyut kritik eşiğin altında. Daha fazla baskı sistemin çöküşünü hızlandırabilir.</div>`;
+}
+
+function clearRadarPreview(){
+  document.querySelectorAll('.legend .row.preview,.legend .row.preview-up,.legend .row.preview-down').forEach(r=>r.classList.remove('preview','preview-up','preview-down'));
+  document.querySelectorAll('.opt-btn.preview-up,.opt-btn.preview-down').forEach(b=>b.classList.remove('preview-up','preview-down'));
+}
+
+function showRadarPreview(opt){
+  clearRadarPreview();
+  const ups=[],downs=[];
+  Object.keys(opt.deltas||{}).forEach(k=>{
+    if(opt.deltas[k]>0)ups.push(k);
+    else if(opt.deltas[k]<0)downs.push(k);
+  });
+  const legendRows=document.querySelectorAll('#legendBox .row');
+  legendRows.forEach(r=>{
+    const code=r.querySelector('b');
+    if(!code)return;
+    const k=code.textContent;
+    if(ups.includes(k)){r.classList.add('preview','preview-up');}
+    else if(downs.includes(k)){r.classList.add('preview','preview-down');}
+  });
+}
+
+function renderTurn(){
+  if(state.turn>=state.crises.length){return finalize();}
+  const crisis=state.crises[state.turn];
+  document.getElementById('turnLabel').textContent=(state.turn+1)+' / '+state.crises.length;
+  renderProgress();
+  renderHistory();
+
+  const echoSlot=document.getElementById('echoSlot');
+  echoSlot.innerHTML='';
+  if(state.pendingEchoes.length){
+    const combinedDeltas={};
+    const combinedTexts=[];
+    while(state.pendingEchoes.length){
+      const echo=state.pendingEchoes.shift();
+      Object.keys(echo.deltas).forEach(k=>{
+        if(combinedDeltas[k]!==undefined){
+          const cur=combinedDeltas[k];
+          const candidate=echo.deltas[k];
+          combinedDeltas[k]=Math.abs(candidate)>Math.abs(cur)?candidate:cur;
+        }else{
+          combinedDeltas[k]=echo.deltas[k];
+        }
+      });
+      combinedTexts.push(echo.text);
+      state.lessons.echo.push(echo.text);
+    }
+    Object.keys(combinedDeltas).forEach(k=>{state.domains[k]=Math.max(0,Math.min(10,state.domains[k]+combinedDeltas[k]));});
+    const deltaStr=Object.keys(combinedDeltas).map(k=>`${k} ${combinedDeltas[k]>0?'+':''}${fmt(combinedDeltas[k])}`).join(' · ');
+    const echoText=combinedTexts.length>1
+      ? `Birden çok yankı birikti. ${combinedTexts.join(' ')}`
+      : combinedTexts[0];
+    echoSlot.innerHTML=`<div class="echo-banner"><span class="eyebrow">geçmişin yankısı</span>${echoText}<br><span style="font-family:var(--font-mono);font-size:10.5px;opacity:.8">${deltaStr}</span></div>`;
+    const rs2=document.getElementById('radarSvg');
+    rs2.classList.add('radar-flash');
+    setTimeout(()=>rs2.classList.remove('radar-flash'),500);
+  }
+
+  document.getElementById('crisisEyebrow').textContent=crisis.eyebrow;
+  document.getElementById('crisisText').textContent=crisis.text;
+  const rs=document.getElementById('radarSvg');
+  rs.innerHTML=renderRadarSVG([
+    {values:state.domains,color:state.island.accent,fill:state.island.accent,fillOpacity:0.3}
+  ]);
+  rs.classList.add('radar-flash');
+  setTimeout(()=>rs.classList.remove('radar-flash'),500);
+  renderFragility();
+  renderLegend();
+  clearRadarPreview();
+
+  const list=document.getElementById('optionsList');
+  list.innerHTML='';
+  list.style.display='grid';
+  document.getElementById('feedbackBox').style.display='none';
+  crisis.options.forEach(opt=>{
+    const btn=document.createElement('button');
+    btn.className='opt-btn';
+    let gateHtml='';
+    if(opt.csrGate){
+      const met=state.domains.CSR>=opt.csrGate.threshold;
+      gateHtml=`<span style="display:block;font-size:11px;font-family:var(--font-mono);color:${met?'var(--teal)':'var(--ink-soft)'};margin-top:4px">${met?'✓ devlet güveni yeterli: ek etki aktif':'⊙ devlet güveni düşük: ek etki pasif'}</span>`;
+    }
+    btn.innerHTML=`<span>${opt.label}</span><span class="hint">${opt.hint}${gateHtml}</span>`;
+    btn.addEventListener('click',()=>choosePolicy(crisis,opt));
+    btn.addEventListener('mouseenter',()=>showRadarPreview(opt));
+    btn.addEventListener('mouseleave',clearRadarPreview);
+    list.appendChild(btn);
+  });
+}
+
+function choosePolicy(crisis,opt){
+  const before={...state.domains};
+  const allDeltas={};
+  Object.keys(opt.deltas||{}).forEach(k=>{
+    const delta=opt.deltas[k];
+    state.domains[k]+=delta;
+    allDeltas[k]=(allDeltas[k]||0)+delta;
+  });
+
+  let whyText='';
+  if(opt.conditional){
+    const c=opt.conditional;
+    const isAbove=before[c.domain]>=c.threshold;
+    const applied=isAbove?c.above:c.below;
+    const delta=applied.delta;
+    state.domains[applied.domain]+=delta;
+    allDeltas[applied.domain]=(allDeltas[applied.domain]||0)+delta;
+    whyText=applied.why;
+    state.lessons.contextual.push({crisis:crisis.id,why:applied.why});
+  }
+  DOMAIN_ORDER.forEach(k=>{state.domains[k]=Math.max(0,Math.min(10,state.domains[k]));});
+
+  state.history.push({turn:state.turn+1, crisis:crisis.eyebrow, choice:opt.label, deltas:{...allDeltas}});
+
+  state.axis.p+=opt.axis.p; state.axis.i+=opt.axis.i; state.axis.j+=opt.axis.j;
+  if(opt.echo){state.pendingEchoes.push(opt.echo);}
+
+  let csrGateNote='';
+  if(opt.csrGate && state.domains.CSR>=opt.csrGate.threshold){
+    const g=opt.csrGate;
+    state.domains[g.bonus.domain]+=g.bonus.delta;
+    allDeltas[g.bonus.domain]=(allDeltas[g.bonus.domain]||0)+g.bonus.delta;
+    csrGateNote=g.bonus.msg;
+    state.lessons.contextual.push({crisis:crisis.id,why:g.bonus.msg});
+  }
+
+  const ups=Object.keys(allDeltas).filter(k=>allDeltas[k]>0);
+  const downs=Object.keys(allDeltas).filter(k=>allDeltas[k]<0);
+  let lessonFlag=''; let lessonClass='';
+  if(ups.length>=2 && downs.length===0){
+    state.lessons.coRaise.push(crisis.id);
+    lessonFlag='✦ sıfır toplamlı değil: iki boyut birlikte yükseldi, kimse bedel ödemedi';
+    lessonClass='win';
+  }else if(ups.length>=1 && downs.length>=1){
+    state.lessons.tradeoff.push(crisis.id);
+    lessonFlag='ödünleşim: bir boyutu güçlendirmek bir başkasına dokundu';
+  }
+
+  document.getElementById('optionsList').style.display='none';
+  const fb=document.getElementById('feedbackBox');
+  fb.style.display='block';
+  document.getElementById('feedbackText').textContent=opt.feedback;
+  const whyEl=document.getElementById('feedbackWhy');
+  if(whyText||csrGateNote){whyEl.innerHTML='<b>Neden böyle oldu?</b> '+(whyText||'')+(csrGateNote?'<br><span style="color:var(--teal)">+ '+csrGateNote+'</span>':'');whyEl.style.display='block';}
+  else{whyEl.style.display='none';}
+
+  const chips=document.getElementById('deltaChips');
+  chips.innerHTML='';
+  Object.keys(allDeltas).forEach(k=>{
+    if(allDeltas[k]===0)return;
+    const s=document.createElement('span');
+    s.className=allDeltas[k]>0?'up':'down';
+    s.textContent=`${k} ${allDeltas[k]>0?'+':''}${fmt(allDeltas[k])}`;
+    chips.appendChild(s);
+  });
+
+  const flagSlot=document.getElementById('lessonFlagSlot');
+  flagSlot.innerHTML=lessonFlag?`<span class="lesson-flag${lessonClass?' '+lessonClass:''}">${lessonFlag}</span>`:'';
+
+  const rSvg=document.getElementById('radarSvg');
+  rSvg.innerHTML=renderRadarSVG([
+    {values:before,color:'#8A8578',fill:'none',dash:'3,3',width:1.5},
+    {values:state.domains,color:state.island.accent,fill:state.island.accent,fillOpacity:0.3}
+  ]);
+  rSvg.classList.add('radar-flash');
+  setTimeout(()=>rSvg.classList.remove('radar-flash'),500);
+  renderLegend();
+}
+
+document.getElementById('continueBtn').addEventListener('click',()=>{
+  state.turn+=1;
+  renderTurn();
+});
+
+function finalize(){
+  const n=state.crises.length;
+  const avg={p:state.axis.p/n,i:state.axis.i/n,j:state.axis.j/n};
+  const dist=ARCHETYPES.map(a=>({a,d:Math.sqrt((a.vec.p-avg.p)**2+(a.vec.i-avg.i)**2+(a.vec.j-avg.j)**2)})).sort((x,y)=>x.d-y.d);
+  const t=dist.slice(0,2);
+  const w0=1/(t[0].d+0.15),w1=1/(t[1].d+0.15);
+  const pct0=Math.round(100*w0/(w0+w1)),pct1=100-pct0;
+
+  const resilience=calcResilience(state.domains,state.startDomains);
+
+  const scoreEl=document.getElementById('scoreValue');
+  scoreEl.textContent='0';
+  scoreEl.classList.remove('score-count');
+  void scoreEl.offsetWidth;
+  let counter=0;
+  const step=Math.max(1,Math.floor(resilience/30));
+  function animateScore(){
+    counter+=step;
+    if(counter>=resilience){scoreEl.textContent=resilience;scoreEl.classList.add('score-count');return;}
+    scoreEl.textContent=counter;
+    requestAnimationFrame(animateScore);
+  }
+  requestAnimationFrame(animateScore);
+
+  document.getElementById('finalAccentSwatch').style.background=state.island.accent;
+  document.getElementById('finalRadarSvg').innerHTML=renderRadarSVG([
+    {values:state.startDomains,color:'#8A8578',fill:'none',dash:'3,3',width:1.5},
+    {values:IDEAL,color:'#C99A3E',fill:'none',dash:'1,4',width:1.5},
+    {values:state.domains,color:state.island.accent,fill:state.island.accent,fillOpacity:0.32,width:2.5}
+  ]);
+
+  document.getElementById('archetypeSplit').textContent=`%${pct0} ${t[0].a.name} · %${pct1} ${t[1].a.name}`;
+  document.getElementById('archetypeName').textContent=t[0].a.name;
+  document.getElementById('archetypeDesc').textContent=t[0].a.desc;
+
+  const exclusion=(state.domains.CR+state.domains.JUS)/2;
+  document.getElementById('criticalNoteWrap').innerHTML= exclusion<4
+    ? `<div class="critical-note"><b>Eleştirel not:</b> Bu profil, klasik sözleşme teorilerinin Carole Pateman ve Charles Mills tarafından eleştirilen körlüğünü yansıtıyor — uyum ve istikrar, dışlanan kesimlerin hakları ve adalet algısı pahasına inşa edildi. Görünürde sağlam bir sözleşme, içeriden çürüyebilir.</div>`
+    : '';
+
+  const fhPanel=document.getElementById('finalHistoryPanel');
+  const fhList=document.getElementById('finalHistoryList');
+  if(state.history.length){
+    fhPanel.style.display='block';
+    fhList.innerHTML=state.history.map(h=>{
+      const dStr=Object.keys(h.deltas).filter(k=>h.deltas[k]!==0).map(k=>`${k} ${h.deltas[k]>0?'+':''}${fmt(h.deltas[k])}`).join(' · ');
+      return `<div class="h-item"><span class="h-turn">#${h.turn}</span><span><strong>${h.crisis}</strong><br>${h.choice} <span style="font-size:11px;color:var(--ink-soft)">${dStr}</span></span></div>`;
+    }).join('');
+  }else{fhPanel.style.display='none';}
+
+  const L=state.lessons;
+  const parts=[];
+  parts.push(`<p>Sosyal sözleşme tek bir şey değil. Altı boyutu ayrı ayrı izledin — birini yönetmek diğerini yönetmek anlamına gelmedi.</p>`);
+  if(L.contextual.length){
+    parts.push(`<p><b>Bağlam belirleyici.</b> ${L.contextual.length} kararında aynı politika, adanın kendi koşulları yüzünden farklı sonuç verdi. Örneğin: <i>${L.contextual[0].why}</i></p>`);
+  }
+  if(L.coRaise.length){
+    parts.push(`<p><b>Sıfır toplamlı değil.</b> ${L.coRaise.length} kez doğru koşullarda doğru politikayla iki boyutu birden yükselttin — kimse bedel ödemeden.</p>`);
+  }else{
+    parts.push(`<p>Sıfır toplamlı bir oyun değil — ama bu oyunda o anı yakalayamadın. Doğru koşullar oluştuğunda bazı politikalar birden fazla boyutu birlikte yükseltebilir.</p>`);
+  }
+  if(L.tradeoff.length){
+    parts.push(`<p><b>Ödünleşimler gerçek.</b> ${L.tradeoff.length} kararında bir boyutu güçlendirmek bir başkasına dokundu. Sanat, hangi ödünleşimin geri döndürülebilir olduğunu bilmekte.</p>`);
+  }
+  if(L.echo.length){
+    parts.push(`<p><b>Kararların yankısı var.</b> ${L.echo.length} kez ertelediğin ya da bastırdığın bir mesele sonraki krizde karşına daha büyümüş olarak çıktı.</p>`);
+  }
+  if(state.history.length){
+    const lastChoice=state.history[state.history.length-1];
+    parts.push(`<p><b>Döngü kapanmadı.</b> Son kararın "${lastChoice.choice}" — bir adada dört kriz yönettin. Gerçek dünyada krizlerin ardı arkası kesilmez. Ama her karar, bir sonraki için zemin hazırlar.</p>`);
+  }
+  document.getElementById('learningSummary').innerHTML=parts.join('');
+
+  showScreen('final');
+}
+
+document.addEventListener('keydown',e=>{
+  const crisisScreen=document.getElementById('screen-crisis');
+  if(!crisisScreen.classList.contains('active'))return;
+  const fb=document.getElementById('feedbackBox');
+  if(fb.style.display==='block'){
+    if(e.key==='Enter'){document.getElementById('continueBtn').click();}
+    return;
+  }
+  const opts=document.querySelectorAll('#optionsList .opt-btn');
+  if(e.key==='1'&&opts[0]){opts[0].click();}
+  else if(e.key==='2'&&opts[1]){opts[1].click();}
+  else if(e.key==='3'&&opts[2]){opts[2].click();}
+});
+
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+
+function buildExportData(){
+  const n=state.crises.length;
+  const avg={p:state.axis.p/n,i:state.axis.i/n,j:state.axis.j/n};
+  const dist=ARCHETYPES.map(a=>({a,d:Math.sqrt((a.vec.p-avg.p)**2+(a.vec.i-avg.i)**2+(a.vec.j-avg.j)**2)})).sort((x,y)=>x.d-y.d);
+  const t=dist.slice(0,2);
+  const w0=1/(t[0].d+0.15),w1=1/(t[1].d+0.15);
+  const pct0=Math.round(100*w0/(w0+w1));
+  const resilience=calcResilience(state.domains,state.startDomains);
+  return{
+    ada:state.island.name,
+    direncPuani:resilience,
+    arketip:t[0].a.name,
+    arketipOranlari:[{isim:t[0].a.name,oran:pct0},{isim:t[1].a.name,oran:100-pct0}],
+    baslangicDegerleri:state.startDomains,
+    finalDegerleri:state.domains,
+    kararlar:state.history
+  };
+}
+
+document.getElementById('copyBtn').addEventListener('click',()=>{
+  const d=buildExportData();
+  const lines=[
+    `ARCHIPELAGO — Oyun Sonucu`,
+    `Ada: ${d.ada}`,
+    `Direnç Puanı: ${d.direncPuani}`,
+    `Arketip: ${d.arketip}`,
+    ``,
+    `Başlangıç: ${DOMAIN_ORDER.map(k=>`${k} ${d.baslangicDegerleri[k]}`).join(' · ')}`,
+    `Final:      ${DOMAIN_ORDER.map(k=>`${k} ${d.finalDegerleri[k]}`).join(' · ')}`,
+    ``,
+    `Kararlar:`
+  ];
+  d.kararlar.forEach(h=>{lines.push(`  #${h.turn} ${h.crisis}: ${h.choice}`);});
+  navigator.clipboard.writeText(lines.join('\n')).then(()=>showToast('panoya kopyalandı ✓')).catch(()=>showToast('kopyalama başarısız'));
+});
+
+document.getElementById('downloadBtn').addEventListener('click',()=>{
+  const d=buildExportData();
+  const blob=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`archipelago-${state.island.id}-${Date.now()}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast('JSON indirildi ✓');
+});
+
+document.getElementById('toIslandsBtn').addEventListener('click',()=>showScreen('start'));
+document.getElementById('randomBtn').addEventListener('click',()=>startGame(ISLANDS[Math.floor(Math.random()*ISLANDS.length)]));
+document.getElementById('replayBtn').addEventListener('click',()=>showScreen('start'));
+
+buildIslandGrid();
+</script>
+</body>
+</html>
