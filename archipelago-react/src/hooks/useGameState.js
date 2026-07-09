@@ -1,5 +1,6 @@
 import { useReducer, useCallback } from 'react';
-import { IDEAL, DOMAIN_ORDER, CRISES, shuffle, ARCHETYPES } from '../data/gameData';
+import { IDEAL, DOMAIN_ORDER, shuffle, ARCHETYPES } from '../data/gameData';
+import { CRISES } from '../data/crises';
 
 function calcResilience(domains, startDomains) {
   const startAvg = DOMAIN_ORDER.reduce((s,k)=>s+Math.abs(startDomains[k]-IDEAL[k]),0)/6;
@@ -37,7 +38,7 @@ const initialState = {
 function reducer(state, action) {
   switch (action.type) {
     case 'START_GAME': {
-      const crises = shuffle(CRISES).slice(0, 4);
+      const crises = shuffle(CRISES).slice(0, 6);
       return {
         ...initialState,
         screen: 'crisis',
@@ -65,8 +66,10 @@ function reducer(state, action) {
         const c = opt.conditional;
         const above = (state.domains[c.domain]||0) >= c.threshold;
         const applied = above ? c.above : c.below;
-        domains[applied.domain] = (domains[applied.domain]||0) + applied.delta;
-        allDeltas[applied.domain] = (allDeltas[applied.domain]||0) + applied.delta;
+        Object.keys(applied.deltas||{}).forEach(k => {
+          domains[k] = (domains[k]||0) + applied.deltas[k];
+          allDeltas[k] = (allDeltas[k]||0) + applied.deltas[k];
+        });
         whyText = applied.why;
       }
 
