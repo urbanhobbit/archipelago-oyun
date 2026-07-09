@@ -124,14 +124,17 @@ button:active { transform: scale(.97); }
 }
 
 /* --- Theme toggle --- */
-.theme-toggle {
+.top-controls {
   position: fixed; top: var(--s4); right: var(--s4); z-index: 50;
+  display: flex; gap: var(--s2);
+}
+.theme-toggle, .lang-toggle {
   background: var(--bg-2); border: 1px solid var(--border);
   color: var(--text-2); padding: var(--s2) var(--s4);
   border-radius: var(--r2); font-size: 12px; letter-spacing: 1px;
   transition: all var(--t-fast);
 }
-.theme-toggle:hover { border-color: var(--border-hi); color: var(--text); }
+.theme-toggle:hover, .lang-toggle:hover { border-color: var(--border-hi); color: var(--text); }
 
 .restart-toggle {
   position: fixed; top: var(--s4); left: var(--s4); z-index: 50;

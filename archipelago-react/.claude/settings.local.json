@@ -7,7 +7,9 @@
       "Bash(ls .claude)",
       "mcp__Claude_Preview__preview_start",
       "WebFetch(domain:www.co3socialcontract.eu)",
-      "mcp__Claude_in_Chrome__tabs_context_mcp"
+      "mcp__Claude_in_Chrome__tabs_context_mcp",
+      "Bash(npm install *)",
+      "Bash(node -e \"console.log\\(require\\('D:/Co3 Game/Oyun/archipelago-react/node_modules/react-i18next/package.json'\\).version\\)\")"
     ]
   }
 }

@@ -1,75 +1,76 @@
 // Kriz kartları — her opsiyon: label, hint, axis{p,i,j}, deltas{domain:delta},
 // opsiyonel conditional{domain,threshold,above:{deltas,why},below:{deltas,why}},
 // opsiyonel csrGate{threshold,bonus:{domain,delta,msg}}, opsiyonel echo{text,deltas}, feedback.
+// Metin alanları {tr,en} nesneleri olarak tutulur; render sırasında tx() ile çözülür.
 export const CRISES = [
-  {id:'disinfo',eyebrow:'DEZENFORMASYON ŞOKU',text:'Yabancı kaynaklı bir manipülasyon ağı, seçim sisteminin hileli olduğuna dair sentetik kanıtlar yayıyor. Halkın bir kısmı sonuçları tanımayacağını ilan etti. Sokaklarda gerilim hızla tırmanıyor.',options:[
-    {label:'İnterneti kısıtla ve şüpheli haber kaynaklarını kapat',hint:'Düzeni hızla sağlar ancak temel özgürlükleri askıya alır',axis:{p:-1.0,i:-0.5,j:-0.5},deltas:{CR:-2,LEG:1,RES:1},
-      feedback:'Sokaklar sakinledi, ama "kimin sesi susturuldu" sorusu havada asılı kaldı.',
-      echo:{text:'Sansürün Bedeli: kısıtlamalar devlete duyulan güveni sessizce aşındırdı.',deltas:{CSR:-2}}},
-    {label:'Şeffaf bilgi ağları ve bağımsız teyit platformları kur',hint:'Toplumsal diyalog yaratır ancak kriz anında yavaş işleyebilir',axis:{p:1.0,i:1.0,j:0.0},
+  {id:'disinfo',eyebrow:{tr:'DEZENFORMASYON ŞOKU',en:'DISINFORMATION SHOCK'},text:{tr:'Yabancı kaynaklı bir manipülasyon ağı, seçim sisteminin hileli olduğuna dair sentetik kanıtlar yayıyor. Halkın bir kısmı sonuçları tanımayacağını ilan etti. Sokaklarda gerilim hızla tırmanıyor.',en:'A foreign-backed manipulation network is spreading synthetic evidence claiming the election system was rigged. Part of the public has declared it will not recognize the results. Tension in the streets is escalating fast.'},options:[
+    {label:{tr:'İnterneti kısıtla ve şüpheli haber kaynaklarını kapat',en:'Restrict the internet and shut down suspect news sources'},hint:{tr:'Düzeni hızla sağlar ancak temel özgürlükleri askıya alır',en:'Restores order quickly but suspends basic freedoms'},axis:{p:-1.0,i:-0.5,j:-0.5},deltas:{CR:-2,LEG:1,RES:1},
+      feedback:{tr:'Sokaklar sakinledi, ama "kimin sesi susturuldu" sorusu havada asılı kaldı.',en:'The streets calmed down, but the question of "whose voice got silenced" lingered in the air.'},
+      echo:{text:{tr:'Sansürün Bedeli: kısıtlamalar devlete duyulan güveni sessizce aşındırdı.',en:'The Cost of Censorship: the restrictions quietly eroded trust in the state.'},deltas:{CSR:-2}}},
+    {label:{tr:'Şeffaf bilgi ağları ve bağımsız teyit platformları kur',en:'Build transparent information networks and independent fact-checking platforms'},hint:{tr:'Toplumsal diyalog yaratır ancak kriz anında yavaş işleyebilir',en:'Creates societal dialogue but may work slowly in the moment of crisis'},axis:{p:1.0,i:1.0,j:0.0},
       conditional:{domain:'COH',threshold:5,
-        above:{deltas:{CSR:2,RES:1},why:'Yüksek güven ortamında teyit mekanizmaları yankı odalarını hızla aştı.'},
-        below:{deltas:{RES:-1},why:'Düşük güven ortamında teyit çabaları kutuplaşmayı kıramadı.'}},
-      feedback:'Doğrulama ağları kuruldu; etkisi, toplumun birbirine ne kadar güvendiğine bağlı çıktı.'},
-    {label:'Yalnızca resmi kurumların tek taraflı açıklamalarını destekle',hint:'Kurumsal otoriteyi korur, sivil sesleri sistemin dışına iter',axis:{p:-0.5,i:-0.5,j:0.0},deltas:{CSR:-1,LEG:1,COH:-1},
-      feedback:'Resmi ağız tek kaynak oldu; inanmayanlar için susturulmuş sayıldı.'}
+        above:{deltas:{CSR:2,RES:1},why:{tr:'Yüksek güven ortamında teyit mekanizmaları yankı odalarını hızla aştı.',en:'In a high-trust environment, fact-checking mechanisms quickly broke through the echo chambers.'}},
+        below:{deltas:{RES:-1},why:{tr:'Düşük güven ortamında teyit çabaları kutuplaşmayı kıramadı.',en:'In a low-trust environment, fact-checking efforts couldn\'t break the polarization.'}}},
+      feedback:{tr:'Doğrulama ağları kuruldu; etkisi, toplumun birbirine ne kadar güvendiğine bağlı çıktı.',en:'Verification networks were built; their impact depended on how much society trusted itself.'}},
+    {label:{tr:'Yalnızca resmi kurumların tek taraflı açıklamalarını destekle',en:'Back only the official institutions\' one-sided statements'},hint:{tr:'Kurumsal otoriteyi korur, sivil sesleri sistemin dışına iter',en:'Protects institutional authority but pushes civic voices outside the system'},axis:{p:-0.5,i:-0.5,j:0.0},deltas:{CSR:-1,LEG:1,COH:-1},
+      feedback:{tr:'Resmi ağız tek kaynak oldu; inanmayanlar için susturulmuş sayıldı.',en:'The official line became the only source; to those who didn\'t believe it, it looked like silencing.'}}
   ]},
-  {id:'polarization',eyebrow:'KUTUPLAŞMA PATLAMASI',text:'Adanın iki büyük toplumsal grubu arasında geçmişten gelen tarihi bir fay hattı kırıldı. Sembolik bir anıtın tahrip edilmesiyle başlayan olaylar, mahalleler arası çatışmalara dönüşmek üzere.',options:[
-    {label:'Kolluk kuvvetlerini sokağa indirip sokağa çıkma yasakları ilan et',hint:'Çatışmayı dondurur, ancak alttan yatan sorunu çözmez',axis:{p:-1.0,i:-1.0,j:-1.0},deltas:{COH:-2,RES:2,CR:-1},
-      feedback:'Sokaklar boşaldı; öfke görünmez oldu, kaybolmadı.',
-      echo:{text:'Bastırılmış Öfke: sessizlik altında gerilim birikmeye devam ediyor.',deltas:{LEG:-1,COH:-1}}},
-    {label:'Bağımsız bir hakikat ve uzlaşı komisyonu topla',hint:'Geçmişle yüzleşmeyi sağlar, adaleti tesis etmeye odaklanır',axis:{p:0.5,i:1.0,j:1.0},
+  {id:'polarization',eyebrow:{tr:'KUTUPLAŞMA PATLAMASI',en:'POLARIZATION FLASHPOINT'},text:{tr:'Adanın iki büyük toplumsal grubu arasında geçmişten gelen tarihi bir fay hattı kırıldı. Sembolik bir anıtın tahrip edilmesiyle başlayan olaylar, mahalleler arası çatışmalara dönüşmek üzere.',en:'A historic fault line between the island\'s two major social groups has ruptured. What started with the destruction of a symbolic monument is on the verge of turning into clashes between neighborhoods.'},options:[
+    {label:{tr:'Kolluk kuvvetlerini sokağa indirip sokağa çıkma yasakları ilan et',en:'Deploy security forces and declare curfews'},hint:{tr:'Çatışmayı dondurur, ancak alttan yatan sorunu çözmez',en:'Freezes the conflict, but doesn\'t resolve the underlying issue'},axis:{p:-1.0,i:-1.0,j:-1.0},deltas:{COH:-2,RES:2,CR:-1},
+      feedback:{tr:'Sokaklar boşaldı; öfke görünmez oldu, kaybolmadı.',en:'The streets emptied; the anger became invisible, not gone.'},
+      echo:{text:{tr:'Bastırılmış Öfke: sessizlik altında gerilim birikmeye devam ediyor.',en:'Suppressed Anger: tension keeps building beneath the silence.'},deltas:{LEG:-1,COH:-1}}},
+    {label:{tr:'Bağımsız bir hakikat ve uzlaşı komisyonu topla',en:'Convene an independent truth and reconciliation commission'},hint:{tr:'Geçmişle yüzleşmeyi sağlar, adaleti tesis etmeye odaklanır',en:'Enables confronting the past, focuses on establishing justice'},axis:{p:0.5,i:1.0,j:1.0},
       conditional:{domain:'LEG',threshold:4,
-        above:{deltas:{COH:2,JUS:1},why:'Kurumlara olan inanç, tarafları aynı masaya oturmaya ikna etti.'},
-        below:{deltas:{LEG:-1,COH:-1},why:'Zayıf meşruiyet, komisyon kararlarının taraflı bulunmasına yol açtı.'}},
-      feedback:'Komisyon kuruldu; sonucu, kurumlara ne kadar inanıldığına bağlı çıktı.'},
-    {label:'Yalnızca anıtı tahrip edenleri hızlıca yargıla ve cezalandır',hint:'Mevcut yasaları katı şekilde uygular, toplumsal yarayı görmezden gelir',axis:{p:0.0,i:-0.5,j:0.5},deltas:{LEG:1,JUS:1,COH:-1},
-      feedback:'Adalet yerini buldu, ama sadece bir tarafın gözünde.'}
+        above:{deltas:{COH:2,JUS:1},why:{tr:'Kurumlara olan inanç, tarafları aynı masaya oturmaya ikna etti.',en:'Faith in institutions convinced both sides to sit at the same table.'}},
+        below:{deltas:{LEG:-1,COH:-1},why:{tr:'Zayıf meşruiyet, komisyon kararlarının taraflı bulunmasına yol açtı.',en:'Weak legitimacy led the commission\'s decisions to be seen as biased.'}}},
+      feedback:{tr:'Komisyon kuruldu; sonucu, kurumlara ne kadar inanıldığına bağlı çıktı.',en:'The commission was formed; its outcome depended on how much people believed in institutions.'}},
+    {label:{tr:'Yalnızca anıtı tahrip edenleri hızlıca yargıla ve cezalandır',en:'Swiftly try and punish only those who destroyed the monument'},hint:{tr:'Mevcut yasaları katı şekilde uygular, toplumsal yarayı görmezden gelir',en:'Strictly enforces existing laws, ignores the social wound'},axis:{p:0.0,i:-0.5,j:0.5},deltas:{LEG:1,JUS:1,COH:-1},
+      feedback:{tr:'Adalet yerini buldu, ama sadece bir tarafın gözünde.',en:'Justice was served — but only in one side\'s eyes.'}}
   ]},
-  {id:'migration',eyebrow:'GÖÇ DALGASI',text:'Komşu kıtadaki bir kriz nedeniyle binlerce sığınmacı aniden kıyılara ulaştı. Barınma ve gıda altyapısı son derece yetersiz. Yerel halk kaynakların tükenmesinden büyük endişe duyuyor.',options:[
-    {label:'Sınırları tamamen kapat ve gelenleri derhal geri gönder',hint:'Kısa vadeli yerel rahatlama sağlar, evrensel hakları yok sayar',axis:{p:-0.5,i:-1.0,j:-1.0},deltas:{RES:1,COH:1,JUS:-2,CR:-2},
-      feedback:'Yerel halk rahatladı; kapının dışında kalanlar hesaba katılmadı.'},
-    {label:'Sığınmacılara temel haklar ve acil barınma tesisleri sağla',hint:'Yükü adil dağıtmaya çalışır, sistemi kısa vadede zorlar',axis:{p:0.0,i:1.0,j:1.0},deltas:{JUS:2,CR:1,RES:-2,COH:-1},
-      feedback:'Haklar genişledi, ama sistemin taşıma kapasitesi zorlandı.'},
-    {label:'Sığınmacıları acil yerel iş gücü açıklarına yönlendir',hint:'Pragmatik bir karşılıklı çıkar alanı yaratır',axis:{p:0.0,i:0.0,j:-0.5},
+  {id:'migration',eyebrow:{tr:'GÖÇ DALGASI',en:'MIGRATION WAVE'},text:{tr:'Komşu kıtadaki bir kriz nedeniyle binlerce sığınmacı aniden kıyılara ulaştı. Barınma ve gıda altyapısı son derece yetersiz. Yerel halk kaynakların tükenmesinden büyük endişe duyuyor.',en:'A crisis on a neighboring continent has sent thousands of refugees suddenly arriving on the shores. Housing and food infrastructure are severely inadequate. The local population is deeply worried about running out of resources.'},options:[
+    {label:{tr:'Sınırları tamamen kapat ve gelenleri derhal geri gönder',en:'Fully close the borders and immediately send arrivals back'},hint:{tr:'Kısa vadeli yerel rahatlama sağlar, evrensel hakları yok sayar',en:'Provides short-term local relief, disregards universal rights'},axis:{p:-0.5,i:-1.0,j:-1.0},deltas:{RES:1,COH:1,JUS:-2,CR:-2},
+      feedback:{tr:'Yerel halk rahatladı; kapının dışında kalanlar hesaba katılmadı.',en:'The local population felt relief; those left outside the door weren\'t counted.'}},
+    {label:{tr:'Sığınmacılara temel haklar ve acil barınma tesisleri sağla',en:'Provide refugees with basic rights and emergency shelter facilities'},hint:{tr:'Yükü adil dağıtmaya çalışır, sistemi kısa vadede zorlar',en:'Tries to distribute the burden fairly, strains the system in the short term'},axis:{p:0.0,i:1.0,j:1.0},deltas:{JUS:2,CR:1,RES:-2,COH:-1},
+      feedback:{tr:'Haklar genişledi, ama sistemin taşıma kapasitesi zorlandı.',en:'Rights expanded, but the system\'s carrying capacity was strained.'}},
+    {label:{tr:'Sığınmacıları acil yerel iş gücü açıklarına yönlendir',en:'Direct refugees toward urgent local labor shortages'},hint:{tr:'Pragmatik bir karşılıklı çıkar alanı yaratır',en:'Creates a pragmatic area of mutual benefit'},axis:{p:0.0,i:0.0,j:-0.5},
       conditional:{domain:'COH',threshold:5,
-        above:{deltas:{RES:2,CSR:1},why:'Toplumun dışlayıcı olmaması, yeni gelenlerin ekonomiye entegrasyonunu hızlandırdı.'},
-        below:{deltas:{JUS:-1,COH:-1},why:'Kutuplaşmış toplumda bu hamle, göçmenlerin ucuz iş gücü olarak sömürüldüğü algısı yarattı.'}},
-      feedback:'İş gücü açığı kapandı; algı, toplumun ne kadar kapsayıcı olduğuna bağlı şekillendi.'}
+        above:{deltas:{RES:2,CSR:1},why:{tr:'Toplumun dışlayıcı olmaması, yeni gelenlerin ekonomiye entegrasyonunu hızlandırdı.',en:'A non-exclusionary society sped up the newcomers\' integration into the economy.'}},
+        below:{deltas:{JUS:-1,COH:-1},why:{tr:'Kutuplaşmış toplumda bu hamle, göçmenlerin ucuz iş gücü olarak sömürüldüğü algısı yarattı.',en:'In a polarized society, this move created the perception that migrants were being exploited as cheap labor.'}}},
+      feedback:{tr:'İş gücü açığı kapandı; algı, toplumun ne kadar kapsayıcı olduğuna bağlı şekillendi.',en:'The labor shortage closed; the perception was shaped by how inclusive society actually was.'}}
   ]},
-  {id:'recession',eyebrow:'EKONOMİK ŞOK',text:'Küresel tedarik zincirleri aniden koptu. Adada temel gıda ve enerji fiyatları üçe katlandı. Dar gelirliler için yaşam sürdürülemez hale geldi ve iflaslar başladı.',options:[
-    {label:'Büyük şirketlere acil vergi indirimi ve kurtarma paketi ver',hint:'Üretim kapasitesini korur, yükü alt sınıflara bırakır',axis:{p:-0.5,i:-0.5,j:-1.0},deltas:{RES:2,JUS:-2,COH:-1},
-      feedback:'Üretim çarkı döndü; faturayı kimin ödediği belliydi.'},
-    {label:'Temel gıda ve enerjiyi kamulaştırarak tabana dağıt',hint:'Kırılganları doğrudan korur, serbest piyasa dengelerini bozar',axis:{p:0.0,i:1.0,j:1.0},
+  {id:'recession',eyebrow:{tr:'EKONOMİK ŞOK',en:'ECONOMIC SHOCK'},text:{tr:'Küresel tedarik zincirleri aniden koptu. Adada temel gıda ve enerji fiyatları üçe katlandı. Dar gelirliler için yaşam sürdürülemez hale geldi ve iflaslar başladı.',en:'Global supply chains suddenly broke down. Basic food and energy prices on the island have tripled. Life has become unsustainable for low-income households, and bankruptcies have begun.'},options:[
+    {label:{tr:'Büyük şirketlere acil vergi indirimi ve kurtarma paketi ver',en:'Give major corporations an emergency tax cut and bailout package'},hint:{tr:'Üretim kapasitesini korur, yükü alt sınıflara bırakır',en:'Protects production capacity, leaves the burden on lower classes'},axis:{p:-0.5,i:-0.5,j:-1.0},deltas:{RES:2,JUS:-2,COH:-1},
+      feedback:{tr:'Üretim çarkı döndü; faturayı kimin ödediği belliydi.',en:'The wheels of production kept turning; it was clear who was footing the bill.'}},
+    {label:{tr:'Temel gıda ve enerjiyi kamulaştırarak tabana dağıt',en:'Nationalize basic food and energy and distribute them to the base'},hint:{tr:'Kırılganları doğrudan korur, serbest piyasa dengelerini bozar',en:'Directly protects the vulnerable, disrupts free-market balances'},axis:{p:0.0,i:1.0,j:1.0},
       conditional:{domain:'LEG',threshold:5,
-        above:{deltas:{JUS:2,CSR:1},why:'Güçlü kurumlar dağıtımı adil ve kayırmasız gerçekleştirdi.'},
-        below:{deltas:{CSR:-2,JUS:-1},why:'Zayıf devlet kapasitesi dağıtımda yolsuzluk iddialarını tetikledi.'}},
-      feedback:'Kamulaştırma uygulandı; adil mi kayırmacı mı olduğu, kurumlara duyulan güvene bağlı çıktı.'},
-    {label:'Piyasaya müdahale etme, fiyatların kendiliğinden dengelenmesini bekle',hint:'Sistemin olağan akışına güvenir, zayıfları korumasız bırakır',axis:{p:0.0,i:0.0,j:0.0},deltas:{},
-      feedback:'Fiyatlar zamanla dengeye oturdu; o zamana kadar dayanamayanlar için tesellisi olmadı.',
-      echo:{text:'Derinleşen Yoksulluk: bekleme süresinin faturası tabana yıkıldı.',deltas:{COH:-2,JUS:-2}}}
+        above:{deltas:{JUS:2,CSR:1},why:{tr:'Güçlü kurumlar dağıtımı adil ve kayırmasız gerçekleştirdi.',en:'Strong institutions carried out the distribution fairly and without favoritism.'}},
+        below:{deltas:{CSR:-2,JUS:-1},why:{tr:'Zayıf devlet kapasitesi dağıtımda yolsuzluk iddialarını tetikledi.',en:'Weak state capacity triggered corruption allegations in the distribution.'}}},
+      feedback:{tr:'Kamulaştırma uygulandı; adil mi kayırmacı mı olduğu, kurumlara duyulan güvene bağlı çıktı.',en:'Nationalization was carried out; whether it looked fair or favoritist depended on trust in institutions.'}},
+    {label:{tr:'Piyasaya müdahale etme, fiyatların kendiliğinden dengelenmesini bekle',en:'Don\'t intervene in the market, wait for prices to self-correct'},hint:{tr:'Sistemin olağan akışına güvenir, zayıfları korumasız bırakır',en:'Trusts the system\'s natural course, leaves the weak unprotected'},axis:{p:0.0,i:0.0,j:0.0},deltas:{},
+      feedback:{tr:'Fiyatlar zamanla dengeye oturdu; o zamana kadar dayanamayanlar için tesellisi olmadı.',en:'Prices settled into balance over time; there was no consolation for those who couldn\'t hold out until then.'},
+      echo:{text:{tr:'Derinleşen Yoksulluk: bekleme süresinin faturası tabana yıkıldı.',en:'Deepening Poverty: the bill for the waiting period fell on the base.'},deltas:{COH:-2,JUS:-2}}}
   ]},
-  {id:'environmental',eyebrow:'ÇEVRESEL ŞOK',text:'Beklenmedik şiddette bir fırtına adanın tarım alanlarını ve su şebekesini yok etti. Şiddetli gıda kıtlığı kapıda ve yerel altyapı tamamen çökmüş durumda.',options:[
-    {label:'Yerel halkı bölgesel kriz yönetimi komitelerine dahil et',hint:'Çözümü tabandan inşa eder, organizasyonu zaman alabilir',axis:{p:1.0,i:1.0,j:0.0},
+  {id:'environmental',eyebrow:{tr:'ÇEVRESEL ŞOK',en:'ENVIRONMENTAL SHOCK'},text:{tr:'Beklenmedik şiddette bir fırtına adanın tarım alanlarını ve su şebekesini yok etti. Şiddetli gıda kıtlığı kapıda ve yerel altyapı tamamen çökmüş durumda.',en:'A storm of unexpected severity destroyed the island\'s farmland and water network. Severe food shortage is at the door and local infrastructure has completely collapsed.'},options:[
+    {label:{tr:'Yerel halkı bölgesel kriz yönetimi komitelerine dahil et',en:'Include the local population in regional crisis-management committees'},hint:{tr:'Çözümü tabandan inşa eder, organizasyonu zaman alabilir',en:'Builds the solution from the ground up, organizing it may take time'},axis:{p:1.0,i:1.0,j:0.0},
       conditional:{domain:'CSR',threshold:4,
-        above:{deltas:{COH:2,RES:1},why:'Devlet ve yurttaş işbirliği yerel dayanışmayı harika bir şekilde ayağa kaldırdı.'},
-        below:{deltas:{RES:-2},why:'Devlete güvensizlik, komitelerin işleyişini başından bloke etti.'}},
-      feedback:'Komiteler kuruldu; başarısı, devlete duyulan güvenle doğru orantılı çıktı.'},
-    {label:'Ordunun kontrolünde sıkı bir merkezi karne sistemi kur',hint:'Kaynak dağıtımını disipline eder, sivil inisiyatifleri sıfırlar',axis:{p:-1.0,i:0.0,j:-0.5},deltas:{RES:2,CSR:-1},
-      feedback:'Kaynaklar düzenli dağıtıldı; inisiyatif alanı ise kapandı.'},
-    {label:'Kaynak onarımını tamamen özel lojistik şirketlerine devret',hint:'Hızlı donanım sağlar ancak hizmete erişim cüzdana bağlıdır',axis:{p:-0.5,i:-0.5,j:-1.0},deltas:{RES:1,JUS:-2},
-      feedback:'Onarım hızlandı; erişim ise ödeme gücüyle sınırlandı.'}
+        above:{deltas:{COH:2,RES:1},why:{tr:'Devlet ve yurttaş işbirliği yerel dayanışmayı harika bir şekilde ayağa kaldırdı.',en:'Cooperation between the state and citizens brilliantly mobilized local solidarity.'}},
+        below:{deltas:{RES:-2},why:{tr:'Devlete güvensizlik, komitelerin işleyişini başından bloke etti.',en:'Distrust of the state blocked the committees from functioning from the start.'}}},
+      feedback:{tr:'Komiteler kuruldu; başarısı, devlete duyulan güvenle doğru orantılı çıktı.',en:'The committees were formed; their success turned out directly proportional to trust in the state.'}},
+    {label:{tr:'Ordunun kontrolünde sıkı bir merkezi karne sistemi kur',en:'Set up a strict centralized rationing system under military control'},hint:{tr:'Kaynak dağıtımını disipline eder, sivil inisiyatifleri sıfırlar',en:'Disciplines resource distribution, wipes out civic initiative'},axis:{p:-1.0,i:0.0,j:-0.5},deltas:{RES:2,CSR:-1},
+      feedback:{tr:'Kaynaklar düzenli dağıtıldı; inisiyatif alanı ise kapandı.',en:'Resources were distributed in an orderly way; the space for initiative closed.'}},
+    {label:{tr:'Kaynak onarımını tamamen özel lojistik şirketlerine devret',en:'Hand infrastructure repair entirely over to private logistics firms'},hint:{tr:'Hızlı donanım sağlar ancak hizmete erişim cüzdana bağlıdır',en:'Delivers fast equipment, but access to service depends on one\'s wallet'},axis:{p:-0.5,i:-0.5,j:-1.0},deltas:{RES:1,JUS:-2},
+      feedback:{tr:'Onarım hızlandı; erişim ise ödeme gücüyle sınırlandı.',en:'Repairs sped up; access was limited to those who could pay.'}}
   ]},
-  {id:'mobilization',eyebrow:'MOBİLİZASYON',text:'Artan barınma maliyetlerine karşı binlerce genç, merkezi meydanlarda çadır kurarak süresiz sivil itaatsizlik eylemi başlattı. Kamusal alanlarda günlük işleyiş durma noktasına geldi.',options:[
-    {label:'Eylemi yasadışı ilan et ve güç kullanarak hızla dağıt',hint:'Otoriteyi tavizsiz korur, devlet ile gençlerin bağını koparır',axis:{p:-1.0,i:-1.0,j:-1.0},deltas:{LEG:1,CR:-2,CSR:-1},
-      feedback:'Meydanlar boşaltıldı; bir kuşakla köprüler de yakılmış oldu.',
-      echo:{text:'Kayıp Kuşak: dağıtılan eylemin izleri, gençlerle devlet arasındaki bağda kalıcı hasar bıraktı.',deltas:{CSR:-1,COH:-1}}},
-    {label:'Eylemci temsilcilerini doğrudan karar alma meclisine davet et',hint:'Talepleri siyasi sisteme taşır, radikalleşmeyi önler',axis:{p:1.0,i:1.0,j:0.5},
+  {id:'mobilization',eyebrow:{tr:'MOBİLİZASYON',en:'MOBILIZATION'},text:{tr:'Artan barınma maliyetlerine karşı binlerce genç, merkezi meydanlarda çadır kurarak süresiz sivil itaatsizlik eylemi başlattı. Kamusal alanlarda günlük işleyiş durma noktasına geldi.',en:'Against rising housing costs, thousands of young people have pitched tents in central squares, launching an indefinite civil disobedience action. Daily life in public spaces has ground to a halt.'},options:[
+    {label:{tr:'Eylemi yasadışı ilan et ve güç kullanarak hızla dağıt',en:'Declare the protest illegal and disperse it swiftly by force'},hint:{tr:'Otoriteyi tavizsiz korur, devlet ile gençlerin bağını koparır',en:'Uncompromisingly preserves authority, severs the bond between the state and youth'},axis:{p:-1.0,i:-1.0,j:-1.0},deltas:{LEG:1,CR:-2,CSR:-1},
+      feedback:{tr:'Meydanlar boşaltıldı; bir kuşakla köprüler de yakılmış oldu.',en:'The squares were cleared; the bridges to a whole generation were burned along with them.'},
+      echo:{text:{tr:'Kayıp Kuşak: dağıtılan eylemin izleri, gençlerle devlet arasındaki bağda kalıcı hasar bıraktı.',en:'Lost Generation: the traces of the dispersed protest left lasting damage in the bond between youth and the state.'},deltas:{CSR:-1,COH:-1}}},
+    {label:{tr:'Eylemci temsilcilerini doğrudan karar alma meclisine davet et',en:'Invite protest representatives directly into the decision-making assembly'},hint:{tr:'Talepleri siyasi sisteme taşır, radikalleşmeyi önler',en:'Carries demands into the political system, prevents radicalization'},axis:{p:1.0,i:1.0,j:0.5},
       conditional:{domain:'LEG',threshold:4,
-        above:{deltas:{CSR:2,COH:1},why:'Sisteme duyulan güven, sokaktaki enerjiyi yapıcı bir politikaya dönüştürdü.'},
-        below:{deltas:{LEG:-1,RES:-1},why:'Temsilciler devlete güvenmediği için masaya oturmayı reddetti.'}},
-      feedback:'Davet çıkarıldı; kabul görüp görmediği, kurumlara duyulan güvene bağlı çıktı.'},
-    {label:'Sadece geçici barınma yardımları açıklayarak eylemi sönümlendir',hint:'Kısa vadeli maddi tavizler verir, yapısal sorunu görmezden gelir',axis:{p:0.0,i:0.0,j:-0.5},deltas:{RES:1,JUS:-1,LEG:-1},
-      feedback:'Çadırlar kalktı; talep listesi çekmeceye kalktı.'}
+        above:{deltas:{CSR:2,COH:1},why:{tr:'Sisteme duyulan güven, sokaktaki enerjiyi yapıcı bir politikaya dönüştürdü.',en:'Trust in the system turned the energy of the street into constructive policy.'}},
+        below:{deltas:{LEG:-1,RES:-1},why:{tr:'Temsilciler devlete güvenmediği için masaya oturmayı reddetti.',en:'The representatives, distrusting the state, refused to sit at the table.'}}},
+      feedback:{tr:'Davet çıkarıldı; kabul görüp görmediği, kurumlara duyulan güvene bağlı çıktı.',en:'The invitation was extended; whether it was accepted depended on trust in institutions.'}},
+    {label:{tr:'Sadece geçici barınma yardımları açıklayarak eylemi sönümlendir',en:'Defuse the protest by announcing only temporary housing aid'},hint:{tr:'Kısa vadeli maddi tavizler verir, yapısal sorunu görmezden gelir',en:'Grants short-term material concessions, ignores the structural problem'},axis:{p:0.0,i:0.0,j:-0.5},deltas:{RES:1,JUS:-1,LEG:-1},
+      feedback:{tr:'Çadırlar kalktı; talep listesi çekmeceye kalktı.',en:'The tents came down; the list of demands went into a drawer.'}}
   ]}
 ];

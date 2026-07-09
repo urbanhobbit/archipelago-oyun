@@ -27,7 +27,7 @@ const initialState = {
   lastDeltas: null,
   lastWhy: null,
   lastCsrGate: null,
-  lastLesson: null,
+  lastLessonKey: null,
   lastLessonClass: '',
   resilience: 0,
   archetype: null,
@@ -61,7 +61,7 @@ function reducer(state, action) {
         allDeltas[k] = opt.deltas[k];
       });
 
-      let whyText = '';
+      let whyText = null;
       if (opt.conditional) {
         const c = opt.conditional;
         const above = (state.domains[c.domain]||0) >= c.threshold;
@@ -73,7 +73,7 @@ function reducer(state, action) {
         whyText = applied.why;
       }
 
-      let csrGateNote = '';
+      let csrGateNote = null;
       if (opt.csrGate && (domains.CSR||0) >= opt.csrGate.threshold) {
         const g = opt.csrGate;
         domains[g.bonus.domain] = (domains[g.bonus.domain]||0) + g.bonus.delta;
@@ -85,12 +85,12 @@ function reducer(state, action) {
 
       const ups = Object.keys(allDeltas).filter(k=>allDeltas[k]>0);
       const downs = Object.keys(allDeltas).filter(k=>allDeltas[k]<0);
-      let lessonFlag = '', lessonClass = '';
+      let lastLessonKey = null, lessonClass = '';
       if (ups.length>=2 && downs.length===0) {
-        lessonFlag = '✦ sıfır toplamlı değil: iki boyut birlikte yükseldi';
+        lastLessonKey = 'coRaise';
         lessonClass = 'win';
       } else if (ups.length>=1 && downs.length>=1) {
-        lessonFlag = 'ödünleşim: bir boyutu güçlendirmek bir başkasına dokundu';
+        lastLessonKey = 'tradeoff';
       }
 
       const newLessons = {
@@ -119,7 +119,7 @@ function reducer(state, action) {
         lastFeedback: opt.feedback,
         lastDeltas: allDeltas,
         lastWhy: whyText || csrGateNote ? {why:whyText, csrGate:csrGateNote} : null,
-        lastLesson: lessonFlag || null,
+        lastLessonKey,
         lastLessonClass: lessonClass,
         past: [...state.past, state]
       };
@@ -182,7 +182,7 @@ function reducer(state, action) {
         lastDeltas: null,
         lastWhy: null,
         lastCsrGate: null,
-        lastLesson: null,
+        lastLessonKey: null,
         past: [...state.past, state]
       };
     }

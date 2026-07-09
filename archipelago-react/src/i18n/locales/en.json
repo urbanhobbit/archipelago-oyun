@@ -1,0 +1,81 @@
+{
+  "common": {
+    "percent": "{{n}}%"
+  },
+  "app": {
+    "title": "ARCHIPELAGO",
+    "subtitle": "A Social Contract Management Game",
+    "themeLight": "☀ Light",
+    "themeDark": "☾ Dark",
+    "restart": "⟲ Start Over",
+    "co3Badge": "Inspired by CO3",
+    "footer": "This game is inspired by the <a>CO3 — Continuous Construction of Resilient Social Contracts</a> project (grant no. 101132631), supported by the European Union's Horizon Europe programme.",
+    "euFlagAlt": "Flag of the European Union"
+  },
+  "onboard": {
+    "intro": "Every society rests on a <b>fragile six-dimensional balance</b>. This balance is never fixed — it shifts under crisis and is shaped by decisions. Tap each card to understand a dimension. Then choose an island.",
+    "goal": "The goal isn't to maximize any single dimension — it's to build a <b>balanced and resilient</b> whole.",
+    "next": "See the Islands"
+  },
+  "domainCard": {
+    "ariaLabel": "{{name}} — tap for detail",
+    "flipHint": "tap ↺",
+    "subdomainsLabel": "sub-domains"
+  },
+  "difficulty": {
+    "title": "Difficulty: {{n}}/5"
+  },
+  "island": {
+    "ariaLabel": "{{name}} — tap for detail",
+    "flipHint": "tap for detail ↺",
+    "strengths": "strengths",
+    "risks": "vulnerabilities",
+    "select": "Choose This Island →"
+  },
+  "select": {
+    "intro": "Each island has its own strengths and vulnerabilities — the same policy won't produce the same outcome everywhere.",
+    "random": "Random Island"
+  },
+  "crisis": {
+    "islandLabel": "island",
+    "progress": "crisis {{n}} / {{total}}",
+    "undo": "↺ Undo",
+    "echoLabel": "echo of the past",
+    "fragilityWarning": "⚠ fragility warning",
+    "fragilityBelow": "below the critical threshold.",
+    "eyebrowPrefix": "CRISIS · ",
+    "gateMet": "✓ sufficient state trust",
+    "gateUnmet": "⊙ low state trust",
+    "keyboardHint": "1 / 2 / 3 to choose · Enter to continue",
+    "whyLabel": "Why did this happen?",
+    "continue": "Continue"
+  },
+  "lesson": {
+    "coRaise": "✦ not zero-sum: two dimensions rose together",
+    "tradeoff": "trade-off: strengthening one dimension touched another"
+  },
+  "final": {
+    "scoreLabel": "Resilience Score",
+    "scoreContext": "difficulty, on <b>{{name}}</b>",
+    "radarNote": "dashed line — starting state",
+    "criticalNoteLabel": "Critical note:",
+    "criticalNote": "Cohesion and stability were built at the expense of excluded groups' rights and sense of justice. A contract that looks solid on the surface can rot from within.",
+    "dominantArchetype": "dominant archetype · {{pct}}%",
+    "decisionsTitle": "Your Decisions",
+    "learningTitle": "What You Experienced in This Game",
+    "copy": "Copy to Clipboard",
+    "download": "Download JSON",
+    "replay": "Play Again",
+    "exportScoreLabel": "Resilience Score:",
+    "exportArchetypeLabel": "Archetype:"
+  },
+  "learning": {
+    "a": "<b>A social contract isn't one single thing.</b> You tracked six dimensions separately — managing one didn't mean managing another.",
+    "b": "<b>Context is decisive.</b> In {{count}} decisions, the same policy produced different outcomes depending on the island's conditions.",
+    "c": "<b>It isn't zero-sum.</b> {{count}} times you raised two dimensions at once — with no one paying the cost.",
+    "c2": "It isn't zero-sum — but you didn't catch that moment in this run. Try another island.",
+    "d": "<b>Trade-offs are real.</b> In {{count}} decisions, strengthening one dimension touched another.",
+    "e": "<b>Your decisions echo.</b> {{count}} times, an issue you postponed came back to meet you.",
+    "f": "<b>The cycle never closes.</b> Your last decision was \"{{choice}}.\" Every decision lays the ground for the next."
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "common": {
+    "percent": "%{{n}}"
+  },
+  "app": {
+    "title": "ARCHIPELAGO",
+    "subtitle": "Sosyal Sözleşme Yönetim Oyunu",
+    "themeLight": "☀ Açık",
+    "themeDark": "☾ Koyu",
+    "restart": "⟲ Başa Dön",
+    "co3Badge": "CO3 projesinden ilhamla",
+    "footer": "Bu oyun, Avrupa Birliği'nin Horizon Europe programı kapsamında desteklenen <a>CO3 — Continuous Construction of Resilient Social Contracts</a> projesinden (hibe no. 101132631) ilham alınarak geliştirilmiştir.",
+    "euFlagAlt": "Avrupa Birliği bayrağı"
+  },
+  "onboard": {
+    "intro": "Her toplum <b>altı boyutlu kırılgan bir denge</b> üzerinde durur. Bu denge sabit değildir — krizler altında kayar, kararlarla şekillenir. Her karta tıkla, boyutu tanı. Sonra bir ada seç.",
+    "goal": "Amaç hiçbir boyutu maksimuma çıkarmak değil — <b>dengeli ve dirençli</b> bir bütün kurmak.",
+    "next": "Adaları Gör"
+  },
+  "domainCard": {
+    "ariaLabel": "{{name}} — detay için tıkla",
+    "flipHint": "tıkla ↺",
+    "subdomainsLabel": "alt-alanlar"
+  },
+  "difficulty": {
+    "title": "Zorluk: {{n}}/5"
+  },
+  "island": {
+    "ariaLabel": "{{name}} — detay için tıkla",
+    "flipHint": "detay için tıkla ↺",
+    "strengths": "güçlü yanlar",
+    "risks": "kırılganlıklar",
+    "select": "Bu Adayı Seç →"
+  },
+  "select": {
+    "intro": "Her adanın kendi güçlü ve kırılgan yanları var — aynı politika her adada aynı sonucu vermez.",
+    "random": "Rastgele Ada"
+  },
+  "crisis": {
+    "islandLabel": "ada",
+    "progress": "kriz {{n}} / {{total}}",
+    "undo": "↺ Geri Al",
+    "echoLabel": "geçmişin yankısı",
+    "fragilityWarning": "⚠ kırılganlık uyarısı",
+    "fragilityBelow": "kritik eşiğin altında.",
+    "eyebrowPrefix": "KRİZ · ",
+    "gateMet": "✓ devlet güveni yeterli",
+    "gateUnmet": "⊙ devlet güveni düşük",
+    "keyboardHint": "1 / 2 / 3 seç · Enter devam",
+    "whyLabel": "Neden böyle oldu?",
+    "continue": "Devam Et"
+  },
+  "lesson": {
+    "coRaise": "✦ sıfır toplamlı değil: iki boyut birlikte yükseldi",
+    "tradeoff": "ödünleşim: bir boyutu güçlendirmek bir başkasına dokundu"
+  },
+  "final": {
+    "scoreLabel": "Direnç Puanı",
+    "scoreContext": "zorluktaki <b>{{name}}</b>'nda",
+    "radarNote": "kesikli çizgi — başlangıç durumu",
+    "criticalNoteLabel": "Eleştirel Not:",
+    "criticalNote": "Uyum ve istikrar, dışlanan kesimlerin hakları ve adalet algısı pahasına inşa edildi. Görünürde sağlam bir sözleşme içeriden çürüyebilir.",
+    "dominantArchetype": "baskın arketip · %{{pct}}",
+    "decisionsTitle": "Kararların",
+    "learningTitle": "Bu Oyunda Ne Yaşadın",
+    "copy": "Panoya Kopyala",
+    "download": "JSON İndir",
+    "replay": "Yeniden Oyna",
+    "exportScoreLabel": "Direnç Puanı:",
+    "exportArchetypeLabel": "Arketip:"
+  },
+  "learning": {
+    "a": "<b>Sosyal sözleşme tek bir şey değil.</b> Altı boyutu ayrı ayrı izledin — birini yönetmek diğerini yönetmek anlamına gelmedi.",
+    "b": "<b>Bağlam belirleyici.</b> {{count}} kararında aynı politika, adanın koşulları yüzünden farklı sonuç verdi.",
+    "c": "<b>Sıfır toplamlı değil.</b> {{count}} kez iki boyutu birden yükselttin — kimse bedel ödemeden.",
+    "c2": "Sıfır toplamlı değil — ama bu oyunda o anı yakalayamadın. Başka bir adayla dene.",
+    "d": "<b>Ödünleşimler gerçek.</b> {{count}} kararında bir boyutu güçlendirmek diğerine dokundu.",
+    "e": "<b>Kararların yankısı var.</b> {{count}} kez ertelediğin mesele karşına çıktı.",
+    "f": "<b>Döngü kapanmadı.</b> Son kararın \"{{choice}}\". Her karar bir sonraki için zemin hazırlar."
+  }
+}

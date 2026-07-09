@@ -1,6 +1,16 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useTranslation, Trans } from 'react-i18next';
 import { useGameState } from './hooks/useGameState';
+import { tx } from './i18n/tx';
 import { DOMAIN_ORDER, DOMAIN_NAMES, DOMAIN_DESCS, DOMAIN_DETAILS, ISLANDS, fmt } from './data/gameData';
+
+/* ── locale ─────────────────────────────────────────── */
+function useLocale() {
+  const { i18n } = useTranslation();
+  const locale = i18n.language?.startsWith('en') ? 'en' : 'tr';
+  const setLocale = useCallback((l) => i18n.changeLanguage(l), [i18n]);
+  return { locale, setLocale };
+}
 
 /* ── CO3 brand marks ────────────────────────────────── */
 function CO3Mark({ className }) {
@@ -13,12 +23,13 @@ function CO3Mark({ className }) {
 }
 
 function EUFlag({ className }) {
+  const { t } = useTranslation();
   const stars = Array.from({ length: 12 }, (_, i) => {
     const a = (i * 30 - 90) * Math.PI / 180;
     return { x: 12 + 7 * Math.cos(a), y: 8 + 7 * Math.sin(a) };
   });
   return (
-    <svg viewBox="0 0 24 16" className={className} role="img" aria-label="Avrupa Birliği bayrağı">
+    <svg viewBox="0 0 24 16" className={className} role="img" aria-label={t('app.euFlagAlt')}>
       <rect width="24" height="16" fill="#003399" />
       {stars.map((s, i) => (
         <text key={i} x={s.x} y={s.y} fontSize="3" fill="#FFCC00" textAnchor="middle" dominantBaseline="middle">★</text>
@@ -38,28 +49,31 @@ function useTheme() {
 /* ── Domain Flip Card ───────────────────────────────── */
 function DomainFlipCard({ code }) {
   const [flipped, setFlipped] = useState(false);
+  const { t } = useTranslation();
+  const { locale } = useLocale();
   const detail = DOMAIN_DETAILS[code];
+  const name = tx(DOMAIN_NAMES[code], locale);
   return (
     <button
       className={`domain-chip${flipped ? ' flipped' : ''}`}
       onClick={() => setFlipped(f => !f)}
-      aria-label={`${DOMAIN_NAMES[code]} — detay için tıkla`}
+      aria-label={t('domainCard.ariaLabel', { name })}
     >
       <div className="flip-inner">
         {/* Front */}
         <div className="flip-face flip-front">
           <span className="code">{code}</span>
-          <h4>{DOMAIN_NAMES[code]}</h4>
-          <p>{DOMAIN_DESCS[code]}</p>
-          <span className="flip-hint">tıkla ↺</span>
+          <h4>{name}</h4>
+          <p>{tx(DOMAIN_DESCS[code], locale)}</p>
+          <span className="flip-hint">{t('domainCard.flipHint')}</span>
         </div>
         {/* Back */}
         <div className="flip-face flip-back">
-          <p className="fb-theory">{detail.theory}</p>
-          <p className="fb-desc">{detail.deep}</p>
-          <span className="fb-sub">alt-alanlar</span>
-          <ul>{detail.subdomains.map(s => <li key={s}>{s}</li>)}</ul>
-          <p className="fb-game">{detail.gameNote}</p>
+          <p className="fb-theory">{tx(detail.theory, locale)}</p>
+          <p className="fb-desc">{tx(detail.deep, locale)}</p>
+          <span className="fb-sub">{t('domainCard.subdomainsLabel')}</span>
+          <ul>{tx(detail.subdomains, locale).map(s => <li key={s}>{s}</li>)}</ul>
+          <p className="fb-game">{tx(detail.gameNote, locale)}</p>
         </div>
       </div>
     </button>
@@ -137,12 +151,11 @@ function RadarSVG({ values, color, prev = null, size = 300 }) {
 
 /* ── Onboard ─────────────────────────────────────────── */
 function OnboardScreen({ onNext }) {
+  const { t } = useTranslation();
   return (
     <div>
       <p className="onboard-prose">
-        Her toplum <b>altı boyutlu kırılgan bir denge</b> üzerinde durur.
-        Bu denge sabit değildir — krizler altında kayar, kararlarla şekillenir.
-        Her karta tıkla, boyutu tanı. Sonra bir ada seç.
+        <Trans i18nKey="onboard.intro" components={{ b: <b /> }} />
       </p>
 
       <div className="domain-grid">
@@ -150,11 +163,11 @@ function OnboardScreen({ onNext }) {
       </div>
 
       <p className="onboard-prose" style={{ fontSize: 13, marginBottom: 0 }}>
-        Amaç hiçbir boyutu maksimuma çıkarmak değil — <b>dengeli ve dirençli</b> bir bütün kurmak.
+        <Trans i18nKey="onboard.goal" components={{ b: <b /> }} />
       </p>
 
       <div className="center mt-8">
-        <button className="btn btn-primary" onClick={onNext}>Adaları Gör</button>
+        <button className="btn btn-primary" onClick={onNext}>{t('onboard.next')}</button>
       </div>
     </div>
   );
@@ -162,8 +175,9 @@ function OnboardScreen({ onNext }) {
 
 /* ── Difficulty Stars ──────────────────────────────────── */
 function DifficultyStars({ n }) {
+  const { t } = useTranslation();
   return (
-    <span className="difficulty-stars" title={`Zorluk: ${n}/5`}>
+    <span className="difficulty-stars" title={t('difficulty.title', { n })}>
       {'★'.repeat(n)}<span className="empty">{'★'.repeat(5 - n)}</span>
     </span>
   );
@@ -172,6 +186,9 @@ function DifficultyStars({ n }) {
 /* ── Island Flip Card ──────────────────────────────────── */
 function IslandFlipCard({ isl, index, onSelect }) {
   const [flipped, setFlipped] = useState(false);
+  const { t } = useTranslation();
+  const { locale } = useLocale();
+  const name = tx(isl.name, locale);
   return (
     <div
       className={`island-card${flipped ? ' flipped' : ''}`}
@@ -180,17 +197,17 @@ function IslandFlipCard({ isl, index, onSelect }) {
       onClick={() => setFlipped(f => !f)}
       onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setFlipped(f => !f); } }}
       style={{ '--accent-color': isl.accent, animationDelay: `${index * 60}ms` }}
-      aria-label={`${isl.name} — detay için tıkla`}
+      aria-label={t('island.ariaLabel', { name })}
     >
       <div className="flip-inner">
         {/* Front */}
         <div className="flip-face flip-front">
           <div className="accent-line" style={{ background: isl.accent }} />
           <div className="island-card-head">
-            <h3>{isl.name}</h3>
+            <h3>{name}</h3>
             <DifficultyStars n={isl.difficulty} />
           </div>
-          <p className="tag">{isl.tag}</p>
+          <p className="tag">{tx(isl.tag, locale)}</p>
           <div className="island-radar-wrap">
             <RadarSVG values={isl.domains} color={isl.accent} size={132} />
           </div>
@@ -199,22 +216,22 @@ function IslandFlipCard({ isl, index, onSelect }) {
               <span key={k} className="iv-chip"><b>{k}</b> {fmt(isl.domains[k] ?? 0)}</span>
             ))}
           </div>
-          <span className="flip-hint">detay için tıkla ↺</span>
+          <span className="flip-hint">{t('island.flipHint')}</span>
         </div>
 
         {/* Back */}
         <div className="flip-face flip-back">
-          <h3>{isl.name}</h3>
-          <p className="ib-detail">{isl.detail}</p>
-          <span className="ib-label">güçlü yanlar</span>
-          <ul className="ib-list strengths">{isl.strengths.map(s => <li key={s}>{s}</li>)}</ul>
-          <span className="ib-label">kırılganlıklar</span>
-          <ul className="ib-list risks">{isl.risks.map(s => <li key={s}>{s}</li>)}</ul>
+          <h3>{name}</h3>
+          <p className="ib-detail">{tx(isl.detail, locale)}</p>
+          <span className="ib-label">{t('island.strengths')}</span>
+          <ul className="ib-list strengths">{tx(isl.strengths, locale).map(s => <li key={s}>{s}</li>)}</ul>
+          <span className="ib-label">{t('island.risks')}</span>
+          <ul className="ib-list risks">{tx(isl.risks, locale).map(s => <li key={s}>{s}</li>)}</ul>
           <button
             className="btn btn-primary island-select-btn"
             onClick={e => { e.stopPropagation(); onSelect(isl); }}
           >
-            Bu Adayı Seç →
+            {t('island.select')}
           </button>
         </div>
       </div>
@@ -224,11 +241,10 @@ function IslandFlipCard({ isl, index, onSelect }) {
 
 /* ── Island Select ───────────────────────────────────── */
 function SelectScreen({ onSelect }) {
+  const { t } = useTranslation();
   return (
     <div>
-      <p className="select-intro">
-        Her adanın kendi güçlü ve kırılgan yanları var — aynı politika her adada aynı sonucu vermez.
-      </p>
+      <p className="select-intro">{t('select.intro')}</p>
       <div className="island-grid">
         {ISLANDS.map((isl, i) => (
           <IslandFlipCard key={isl.id} isl={isl} index={i} onSelect={onSelect} />
@@ -236,7 +252,7 @@ function SelectScreen({ onSelect }) {
       </div>
       <div className="center">
         <button className="btn btn-ghost" onClick={() => onSelect(ISLANDS[Math.floor(Math.random() * ISLANDS.length)])}>
-          Rastgele Ada
+          {t('select.random')}
         </button>
       </div>
     </div>
@@ -246,6 +262,8 @@ function SelectScreen({ onSelect }) {
 /* ── Crisis Screen ───────────────────────────────────── */
 function CrisisScreen({ state, onChoose, onContinue, onUndo, canUndo }) {
   const crisis = state.crises[state.turn];
+  const { t } = useTranslation();
+  const { locale } = useLocale();
   const fragile = DOMAIN_ORDER.filter(k => (state.domains[k] ?? 0) < 3);
   const [openDesc, setOpenDesc] = useState(null);
   const [prevDomains, setPrevDomains] = useState(null);
@@ -260,19 +278,19 @@ function CrisisScreen({ state, onChoose, onContinue, onUndo, canUndo }) {
       {/* Topbar */}
       <div className="topbar">
         <div className="topbar-left">
-          <div className="label">ada</div>
-          <div className="value">{state.island?.name}</div>
+          <div className="label">{t('crisis.islandLabel')}</div>
+          <div className="value">{tx(state.island?.name, locale)}</div>
           {state.island?.difficulty && <DifficultyStars n={state.island.difficulty} />}
         </div>
         <div className="topbar-right">
-          <div className="label" style={{ fontFamily: 'var(--f-mono)', fontSize: 9, letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--text-3)', textAlign: 'right' }}>kriz {state.turn + 1} / {state.crises.length}</div>
+          <div className="label" style={{ fontFamily: 'var(--f-mono)', fontSize: 9, letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--text-3)', textAlign: 'right' }}>{t('crisis.progress', { n: state.turn + 1, total: state.crises.length })}</div>
           <div className="progress-dots" style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 6 }}>
             {state.crises.map((_, i) => (
               <div key={i} className={`progress-dot${i < state.turn ? ' done' : ''}`} />
             ))}
           </div>
           <button className="btn btn-ghost undo-btn" onClick={onUndo} disabled={!canUndo}>
-            ↺ Geri Al
+            {t('crisis.undo')}
           </button>
         </div>
       </div>
@@ -280,16 +298,16 @@ function CrisisScreen({ state, onChoose, onContinue, onUndo, canUndo }) {
       {/* Echoes */}
       {state.pendingEchoes?.length > 0 && (
         <div className="echo-banner">
-          <span className="echo-label">geçmişin yankısı</span>
-          {state.pendingEchoes.map((e, i) => <div key={i}>{e.text}</div>)}
+          <span className="echo-label">{t('crisis.echoLabel')}</span>
+          {state.pendingEchoes.map((e, i) => <div key={i}>{tx(e.text, locale)}</div>)}
         </div>
       )}
 
       {/* Fragility */}
       {fragile.length > 0 && (
         <div className="frag-banner">
-          <span className="fb-label">⚠ kırılganlık uyarısı</span>
-          {fragile.map(k => `${DOMAIN_NAMES[k]} (${k}: ${fmt(state.domains[k])})`).join(' · ')} — kritik eşiğin altında.
+          <span className="fb-label">{t('crisis.fragilityWarning')}</span>
+          {fragile.map(k => `${tx(DOMAIN_NAMES[k], locale)} (${k}: ${fmt(state.domains[k])})`).join(' · ')} — {t('crisis.fragilityBelow')}
         </div>
       )}
 
@@ -309,10 +327,10 @@ function CrisisScreen({ state, onChoose, onContinue, onUndo, canUndo }) {
                     onClick={() => setOpenDesc(openDesc === k ? null : k)}
                   >
                     <span className="lk">{k}</span>
-                    <span className="lname">{DOMAIN_NAMES[k]}</span>
+                    <span className="lname">{tx(DOMAIN_NAMES[k], locale)}</span>
                     <span className="lval">{fmt(state.domains[k] ?? 0)}</span>
                   </div>
-                  {openDesc === k && <div className="legend-desc">{DOMAIN_DESCS[k]}</div>}
+                  {openDesc === k && <div className="legend-desc">{tx(DOMAIN_DESCS[k], locale)}</div>}
                 </div>
               ))}
             </div>
@@ -322,8 +340,8 @@ function CrisisScreen({ state, onChoose, onContinue, onUndo, canUndo }) {
         {/* Right — crisis + options */}
         <div className="crisis-right">
           <div className="crisis-card">
-            <div className="eyebrow">KRİZ · {crisis.eyebrow}</div>
-            <div className="body">{crisis.text}</div>
+            <div className="eyebrow">{t('crisis.eyebrowPrefix')}{tx(crisis.eyebrow, locale)}</div>
+            <div className="body">{tx(crisis.text, locale)}</div>
           </div>
 
           {!state.showFeedback && (
@@ -331,27 +349,27 @@ function CrisisScreen({ state, onChoose, onContinue, onUndo, canUndo }) {
               <div className="options-list">
                 {crisis.options.map((opt, i) => (
                   <button key={i} className="opt-btn" onClick={() => onChoose(crisis, opt)}>
-                    <span className="opt-label">{opt.label}</span>
-                    <span className="opt-hint">{opt.hint}</span>
+                    <span className="opt-label">{tx(opt.label, locale)}</span>
+                    <span className="opt-hint">{tx(opt.hint, locale)}</span>
                     {opt.csrGate && (
                       <span className={`opt-gate ${(state.domains.CSR ?? 0) >= opt.csrGate.threshold ? 'met' : 'unmet'}`}>
-                        {(state.domains.CSR ?? 0) >= opt.csrGate.threshold ? '✓ devlet güveni yeterli' : '⊙ devlet güveni düşük'}
+                        {(state.domains.CSR ?? 0) >= opt.csrGate.threshold ? t('crisis.gateMet') : t('crisis.gateUnmet')}
                       </span>
                     )}
                   </button>
                 ))}
               </div>
-              <p className="kb-hint">1 / 2 / 3 seç · Enter devam</p>
+              <p className="kb-hint">{t('crisis.keyboardHint')}</p>
             </>
           )}
 
           {state.showFeedback && (
             <div className="feedback-panel">
-              <p className="fb-main">{state.lastFeedback}</p>
+              <p className="fb-main">{tx(state.lastFeedback, locale)}</p>
               {state.lastWhy && (
                 <p className="fb-why">
-                  <b>Neden böyle oldu?</b>{' '}{state.lastWhy.why}
-                  {state.lastWhy.csrGate && <><br /><span style={{ color: 'var(--teal)' }}>+ {state.lastWhy.csrGate}</span></>}
+                  <b>{t('crisis.whyLabel')}</b>{' '}{tx(state.lastWhy.why, locale)}
+                  {state.lastWhy.csrGate && <><br /><span style={{ color: 'var(--teal)' }}>+ {tx(state.lastWhy.csrGate, locale)}</span></>}
                 </p>
               )}
               {state.lastDeltas && (
@@ -363,11 +381,11 @@ function CrisisScreen({ state, onChoose, onContinue, onUndo, canUndo }) {
                   ))}
                 </div>
               )}
-              {state.lastLesson && (
-                <div className={`lesson-flag ${state.lastLessonClass ?? ''}`}>{state.lastLesson}</div>
+              {state.lastLessonKey && (
+                <div className={`lesson-flag ${state.lastLessonClass ?? ''}`}>{t(`lesson.${state.lastLessonKey}`)}</div>
               )}
               <button className="btn btn-ghost" onClick={onContinue} style={{ display: 'block', width: '100%' }}>
-                Devam Et
+                {t('crisis.continue')}
               </button>
             </div>
           )}
@@ -379,27 +397,38 @@ function CrisisScreen({ state, onChoose, onContinue, onUndo, canUndo }) {
 
 /* ── Final Screen ────────────────────────────────────── */
 function FinalScreen({ state, onReplay }) {
+  const { t } = useTranslation();
+  const { locale } = useLocale();
   const exclusion = ((state.domains?.CR ?? 0) + (state.domains?.JUS ?? 0)) / 2;
   const topArchetype = state.archetypeProbs?.[0];
+  const islandName = tx(state.island?.name, locale);
+  const archetypeName = tx(state.archetype?.name, locale);
+  const archetypeDesc = tx(state.archetype?.desc, locale);
 
   const learningItems = useMemo(() => {
     const L = state.lessons;
     const items = [];
-    items.push(<p key="a"><b>Sosyal sözleşme tek bir şey değil.</b> Altı boyutu ayrı ayrı izledin — birini yönetmek diğerini yönetmek anlamına gelmedi.</p>);
-    if (L.contextual?.length) items.push(<p key="b"><b>Bağlam belirleyici.</b> {L.contextual.length} kararında aynı politika, adanın koşulları yüzünden farklı sonuç verdi.</p>);
-    if (L.coRaise?.length) items.push(<p key="c"><b>Sıfır toplamlı değil.</b> {L.coRaise.length} kez iki boyutu birden yükselttin — kimse bedel ödemeden.</p>);
-    else items.push(<p key="c2">Sıfır toplamlı değil — ama bu oyunda o anı yakalayamadın. Başka bir adayla dene.</p>);
-    if (L.tradeoff?.length) items.push(<p key="d"><b>Ödünleşimler gerçek.</b> {L.tradeoff.length} kararında bir boyutu güçlendirmek diğerine dokundu.</p>);
-    if (L.echo?.length) items.push(<p key="e"><b>Kararların yankısı var.</b> {L.echo.length} kez ertelediğin mesele karşına çıktı.</p>);
+    items.push(<p key="a"><Trans i18nKey="learning.a" components={{ b: <b /> }} /></p>);
+    if (L.contextual?.length) items.push(<p key="b"><Trans i18nKey="learning.b" values={{ count: L.contextual.length }} components={{ b: <b /> }} /></p>);
+    if (L.coRaise?.length) items.push(<p key="c"><Trans i18nKey="learning.c" values={{ count: L.coRaise.length }} components={{ b: <b /> }} /></p>);
+    else items.push(<p key="c2">{t('learning.c2')}</p>);
+    if (L.tradeoff?.length) items.push(<p key="d"><Trans i18nKey="learning.d" values={{ count: L.tradeoff.length }} components={{ b: <b /> }} /></p>);
+    if (L.echo?.length) items.push(<p key="e"><Trans i18nKey="learning.e" values={{ count: L.echo.length }} components={{ b: <b /> }} /></p>);
     if (state.history?.length) {
       const last = state.history[state.history.length - 1];
-      items.push(<p key="f"><b>Döngü kapanmadı.</b> Son kararın "{last.choice}". Her karar bir sonraki için zemin hazırlar.</p>);
+      items.push(<p key="f"><Trans i18nKey="learning.f" values={{ choice: tx(last.choice, locale) }} components={{ b: <b /> }} /></p>);
     }
     return items;
-  }, [state.lessons, state.history]);
+  }, [state.lessons, state.history, locale, t]);
 
   const exportJSON = () => {
-    const d = { ada: state.island?.name, puan: state.resilience, arketip: state.archetype?.name, kararlar: state.history, finalDegerleri: state.domains };
+    const d = {
+      island: islandName,
+      score: state.resilience,
+      archetype: archetypeName,
+      decisions: state.history?.map(h => ({ turn: h.turn, crisis: tx(h.crisis, locale), choice: tx(h.choice, locale), deltas: h.deltas })),
+      finalValues: state.domains
+    };
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([JSON.stringify(d, null, 2)], { type: 'application/json' }));
     a.download = `archipelago-${state.island?.id}.json`;
@@ -408,11 +437,11 @@ function FinalScreen({ state, onReplay }) {
 
   const copyText = () => {
     const lines = [
-      `ARCHIPELAGO — ${state.island?.name}`,
-      `Direnç Puanı: ${state.resilience}`,
-      `Arketip: ${state.archetype?.name}`,
+      `ARCHIPELAGO — ${islandName}`,
+      `${t('final.exportScoreLabel')} ${state.resilience}`,
+      `${t('final.exportArchetypeLabel')} ${archetypeName}`,
       '',
-      ...( state.history?.map(h => `  #${h.turn} ${h.crisis}: ${h.choice}`) ?? [])
+      ...(state.history?.map(h => `  #${h.turn} ${tx(h.crisis, locale)}: ${tx(h.choice, locale)}`) ?? [])
     ];
     navigator.clipboard.writeText(lines.join('\n')).catch(() => {});
   };
@@ -421,11 +450,11 @@ function FinalScreen({ state, onReplay }) {
     <div>
       {/* Hero */}
       <div className="final-hero">
-        <div className="score-label">Direnç Puanı</div>
+        <div className="score-label">{t('final.scoreLabel')}</div>
         <div className="score">{state.resilience}</div>
         {state.island?.difficulty && (
           <div className="score-context">
-            <DifficultyStars n={state.island.difficulty} /> zorluktaki <b>{state.island.name}</b>'nda
+            <DifficultyStars n={state.island.difficulty} /> <Trans i18nKey="final.scoreContext" values={{ name: islandName }} components={{ b: <b /> }} />
           </div>
         )}
       </div>
@@ -433,7 +462,7 @@ function FinalScreen({ state, onReplay }) {
       {/* Radar */}
       <div className="radar-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 'var(--s5)' }}>
         <RadarSVG values={state.domains ?? {}} prev={state.startDomains} color={state.island?.accent ?? '#7B6BB8'} size={200} />
-        <p className="radar-legend-note">kesikli çizgi — başlangıç durumu</p>
+        <p className="radar-legend-note">{t('final.radarNote')}</p>
         <div className="domain-shift-row">
           {DOMAIN_ORDER.map(k => {
             const from = state.startDomains?.[k] ?? 0, to = state.domains?.[k] ?? 0;
@@ -449,7 +478,7 @@ function FinalScreen({ state, onReplay }) {
 
       {exclusion < 4 && (
         <div className="critical-note">
-          <b>Eleştirel Not:</b> Uyum ve istikrar, dışlanan kesimlerin hakları ve adalet algısı pahasına inşa edildi. Görünürde sağlam bir sözleşme içeriden çürüyebilir.
+          <b>{t('final.criticalNoteLabel')}</b> {t('final.criticalNote')}
         </div>
       )}
 
@@ -457,28 +486,28 @@ function FinalScreen({ state, onReplay }) {
       <div className="final-body">
         <div>
           <div className="archetype-card">
-            <div className="arch-split">baskın arketip · %{topArchetype?.pct}</div>
-            <h3>{state.archetype?.name}</h3>
-            <p>{state.archetype?.desc}</p>
+            <div className="arch-split">{t('final.dominantArchetype', { pct: topArchetype?.pct })}</div>
+            <h3>{archetypeName}</h3>
+            <p>{archetypeDesc}</p>
             <div className="prob-bars">
-              {state.archetypeProbs?.map(p => (
-                <div key={p.name} className="prob-row">
-                  <span className="prob-name">{p.name}</span>
+              {state.archetypeProbs?.map((p, i) => (
+                <div key={i} className="prob-row">
+                  <span className="prob-name">{tx(p.name, locale)}</span>
                   <div className="prob-track"><div className="prob-fill" style={{ width: `${p.pct}%` }} /></div>
-                  <span className="prob-pct">%{p.pct}</span>
+                  <span className="prob-pct">{t('common.percent', { n: p.pct })}</span>
                 </div>
               ))}
             </div>
           </div>
 
           <div className="history-card" style={{ marginTop: 'var(--s4)' }}>
-            <h4>Kararların</h4>
+            <h4>{t('final.decisionsTitle')}</h4>
             {state.history?.map(h => (
               <div key={h.turn} className="h-item">
                 <span className="h-turn">#{h.turn}</span>
                 <div className="h-main">
-                  <strong>{h.crisis}</strong>
-                  {h.choice}
+                  <strong>{tx(h.crisis, locale)}</strong>
+                  {tx(h.choice, locale)}
                   <div className="h-deltas">
                     {Object.entries(h.deltas || {}).filter(([, v]) => v !== 0).map(([k, v]) => (
                       <span key={k} className={`delta-chip ${v > 0 ? 'up' : 'down'}`}>{k} {v > 0 ? '+' : ''}{fmt(v)}</span>
@@ -492,7 +521,7 @@ function FinalScreen({ state, onReplay }) {
 
         <div>
           <div className="learning-card">
-            <h4>Bu Oyunda Ne Yaşadın</h4>
+            <h4>{t('final.learningTitle')}</h4>
             {learningItems}
           </div>
         </div>
@@ -500,11 +529,11 @@ function FinalScreen({ state, onReplay }) {
 
       {/* Actions */}
       <div className="export-row">
-        <button className="btn btn-secondary" onClick={copyText}>Panoya Kopyala</button>
-        <button className="btn btn-secondary" onClick={exportJSON}>JSON İndir</button>
+        <button className="btn btn-secondary" onClick={copyText}>{t('final.copy')}</button>
+        <button className="btn btn-secondary" onClick={exportJSON}>{t('final.download')}</button>
       </div>
       <div className="center">
-        <button className="btn btn-primary" onClick={onReplay}>Yeniden Oyna</button>
+        <button className="btn btn-primary" onClick={onReplay}>{t('final.replay')}</button>
       </div>
     </div>
   );
@@ -514,6 +543,8 @@ function FinalScreen({ state, onReplay }) {
 export default function App() {
   const { state, startGame, choosePolicy, continueTurn, undo, replay } = useGameState();
   const { theme, toggle } = useTheme();
+  const { t } = useTranslation();
+  const { locale, setLocale } = useLocale();
   const [screen, setScreen] = useState('onboard');
 
   useEffect(() => { setScreen(state.screen); }, [state.screen]);
@@ -544,23 +575,28 @@ export default function App() {
         <span /><span /><span />
       </div>
 
-      {/* Theme toggle */}
-      <button className="theme-toggle" onClick={toggle}>
-        {theme === 'dark' ? '☀ Açık' : '☾ Koyu'}
-      </button>
+      {/* Theme + language toggle */}
+      <div className="top-controls">
+        <button className="lang-toggle" onClick={() => setLocale(locale === 'tr' ? 'en' : 'tr')}>
+          {locale === 'tr' ? 'EN' : 'TR'}
+        </button>
+        <button className="theme-toggle" onClick={toggle}>
+          {theme === 'dark' ? t('app.themeLight') : t('app.themeDark')}
+        </button>
+      </div>
 
       {/* Restart to start */}
       {screen !== 'onboard' && (
-        <button className="restart-toggle" onClick={restart}>⟲ Başa Dön</button>
+        <button className="restart-toggle" onClick={restart}>{t('app.restart')}</button>
       )}
 
       {/* Header */}
       <header className="app-header">
-        <h1>ARCHIPELAGO</h1>
+        <h1>{t('app.title')}</h1>
         <div className="divider" />
-        <div className="subtitle">Sosyal Sözleşme Yönetim Oyunu</div>
+        <div className="subtitle">{t('app.subtitle')}</div>
         <a className="co3-badge" href="https://www.co3socialcontract.eu/" target="_blank" rel="noopener noreferrer">
-          <CO3Mark className="co3-mark" /> CO3 projesinden ilhamla
+          <CO3Mark className="co3-mark" /> {t('app.co3Badge')}
         </a>
       </header>
 
@@ -574,11 +610,7 @@ export default function App() {
       <footer className="site-footer">
         <EUFlag className="eu-flag" />
         <p>
-          Bu oyun, Avrupa Birliği'nin Horizon Europe programı kapsamında desteklenen{' '}
-          <a href="https://www.co3socialcontract.eu/" target="_blank" rel="noopener noreferrer">
-            CO3 — Continuous Construction of Resilient Social Contracts
-          </a>{' '}
-          projesinden (hibe no. 101132631) ilham alınarak geliştirilmiştir.
+          <Trans i18nKey="app.footer" components={{ a: <a href="https://www.co3socialcontract.eu/" target="_blank" rel="noopener noreferrer" /> }} />
         </p>
       </footer>
     </>
