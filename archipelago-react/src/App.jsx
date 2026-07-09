@@ -355,6 +355,7 @@ function CrisisScreen({ state, onChoose, onContinue, onUndo, canUndo }) {
 /* ── Final Screen ────────────────────────────────────── */
 function FinalScreen({ state, onReplay }) {
   const exclusion = ((state.domains?.CR ?? 0) + (state.domains?.JUS ?? 0)) / 2;
+  const topArchetype = state.archetypeProbs?.[0];
 
   const learningItems = useMemo(() => {
     const L = state.lessons;
@@ -397,11 +398,28 @@ function FinalScreen({ state, onReplay }) {
       <div className="final-hero">
         <div className="score-label">Direnç Puanı</div>
         <div className="score">{state.resilience}</div>
+        {state.island?.difficulty && (
+          <div className="score-context">
+            <DifficultyStars n={state.island.difficulty} /> zorluktaki <b>{state.island.name}</b>'nda
+          </div>
+        )}
       </div>
 
       {/* Radar */}
-      <div className="radar-container" style={{ display: 'flex', justifyContent: 'center', marginBottom: 'var(--s6)' }}>
-        <RadarSVG values={state.domains ?? {}} color={state.island?.accent ?? '#7B6BB8'} size={300} />
+      <div className="radar-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 'var(--s6)' }}>
+        <RadarSVG values={state.domains ?? {}} prev={state.startDomains} color={state.island?.accent ?? '#7B6BB8'} size={300} />
+        <p className="radar-legend-note">kesikli çizgi — başlangıç durumu</p>
+        <div className="domain-shift-row">
+          {DOMAIN_ORDER.map(k => {
+            const from = state.startDomains?.[k] ?? 0, to = state.domains?.[k] ?? 0;
+            const d = Math.round((to - from) * 10) / 10;
+            return (
+              <span key={k} className={`shift-chip ${d > 0 ? 'up' : d < 0 ? 'down' : ''}`}>
+                {k} {fmt(from)}→{fmt(to)}{d !== 0 ? ` (${d > 0 ? '+' : ''}${fmt(d)})` : ''}
+              </span>
+            );
+          })}
+        </div>
       </div>
 
       {exclusion < 4 && (
@@ -414,9 +432,18 @@ function FinalScreen({ state, onReplay }) {
       <div className="final-body">
         <div>
           <div className="archetype-card">
-            <div className="arch-split">{state.archetypeSplit}</div>
+            <div className="arch-split">baskın arketip · %{topArchetype?.pct}</div>
             <h3>{state.archetype?.name}</h3>
             <p>{state.archetype?.desc}</p>
+            <div className="prob-bars">
+              {state.archetypeProbs?.map(p => (
+                <div key={p.name} className="prob-row">
+                  <span className="prob-name">{p.name}</span>
+                  <div className="prob-track"><div className="prob-fill" style={{ width: `${p.pct}%` }} /></div>
+                  <span className="prob-pct">%{p.pct}</span>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="history-card" style={{ marginTop: 'var(--s4)' }}>
@@ -427,6 +454,11 @@ function FinalScreen({ state, onReplay }) {
                 <div className="h-main">
                   <strong>{h.crisis}</strong>
                   {h.choice}
+                  <div className="h-deltas">
+                    {Object.entries(h.deltas || {}).filter(([, v]) => v !== 0).map(([k, v]) => (
+                      <span key={k} className={`delta-chip ${v > 0 ? 'up' : 'down'}`}>{k} {v > 0 ? '+' : ''}{fmt(v)}</span>
+                    ))}
+                  </div>
                 </div>
               </div>
             ))}

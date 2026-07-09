@@ -31,7 +31,7 @@ const initialState = {
   lastLessonClass: '',
   resilience: 0,
   archetype: null,
-  archetypeSplit: '',
+  archetypeProbs: [],
   past: []
 };
 
@@ -93,6 +93,13 @@ function reducer(state, action) {
         lessonFlag = 'ödünleşim: bir boyutu güçlendirmek bir başkasına dokundu';
       }
 
+      const newLessons = {
+        contextual: opt.conditional ? [...state.lessons.contextual, {crisis:crisis.eyebrow, choice:opt.label}] : state.lessons.contextual,
+        coRaise: lessonClass === 'win' ? [...state.lessons.coRaise, {crisis:crisis.eyebrow, choice:opt.label}] : state.lessons.coRaise,
+        tradeoff: (ups.length>=1 && downs.length>=1) ? [...state.lessons.tradeoff, {crisis:crisis.eyebrow, choice:opt.label}] : state.lessons.tradeoff,
+        echo: state.lessons.echo
+      };
+
       const newAxis = {...state.axis};
       newAxis.p += opt.axis?.p || 0;
       newAxis.i += opt.axis?.i || 0;
@@ -106,6 +113,7 @@ function reducer(state, action) {
         domains,
         axis: newAxis,
         pendingEchoes: newEchoes,
+        lessons: newLessons,
         history: [...state.history, {turn:state.turn+1, crisis:crisis.eyebrow, choice:opt.label, deltas:{...allDeltas}}],
         showFeedback: true,
         lastFeedback: opt.feedback,
@@ -121,9 +129,9 @@ function reducer(state, action) {
       // process echoes
       let domains = {...state.domains};
       const echoes = [...state.pendingEchoes];
+      const echoLessons = [...state.lessons.echo];
       if (echoes.length) {
         const combinedDeltas = {};
-        const texts = [];
         while (echoes.length) {
           const echo = echoes.shift();
           Object.keys(echo.deltas).forEach(k => {
@@ -133,27 +141,32 @@ function reducer(state, action) {
               combinedDeltas[k] = echo.deltas[k];
             }
           });
-          texts.push(echo.text);
+          echoLessons.push({text: echo.text});
         }
         Object.keys(combinedDeltas).forEach(k => { domains[k] = Math.max(0, Math.min(10, (domains[k]||0) + combinedDeltas[k])); });
       }
+      const newLessons = {...state.lessons, echo: echoLessons};
 
       const nextTurn = state.turn + 1;
       if (nextTurn >= state.crises.length) {
         const n = state.crises.length;
         const avg = {p:state.axis.p/n, i:state.axis.i/n, j:state.axis.j/n};
-        const dist = ARCHETYPES.map(a=>({a, d:Math.sqrt((a.vec?.p||0-avg.p)**2+(a.vec?.i||0-avg.i)**2+(a.vec?.j||0-avg.j)**2)})).sort((x,y)=>x.d-y.d);
-        const t = dist.slice(0,2);
-        const w0 = 1/(t[0].d+0.15), w1 = 1/(t[1].d+0.15);
-        const pct0 = Math.round(100*w0/(w0+w1));
+        const dist = ARCHETYPES.map(a=>({
+          a,
+          d: Math.sqrt(((a.vec?.p||0)-avg.p)**2 + ((a.vec?.i||0)-avg.i)**2 + ((a.vec?.j||0)-avg.j)**2)
+        })).sort((x,y)=>x.d-y.d);
+        const weights = dist.map(x => 1/(x.d+0.15));
+        const totalW = weights.reduce((s,w)=>s+w,0);
+        const archetypeProbs = dist.map((x,idx) => ({name:x.a.name, desc:x.a.desc, pct:Math.round(100*weights[idx]/totalW)}));
         const resilience = calcResilience(domains, state.startDomains);
         return {
           ...state,
           screen: 'final',
           domains,
+          lessons: newLessons,
           resilience,
-          archetype: t[0].a,
-          archetypeSplit: `%${pct0} ${t[0].a.name} · %${100-pct0} ${t[1].a.name}`,
+          archetype: dist[0].a,
+          archetypeProbs,
           showFeedback: false,
           past: [...state.past, state]
         };
@@ -161,6 +174,7 @@ function reducer(state, action) {
       return {
         ...state,
         domains,
+        lessons: newLessons,
         turn: nextTurn,
         pendingEchoes: [],
         showFeedback: false,
