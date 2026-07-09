@@ -418,7 +418,16 @@ button:active { transform: scale(.97); }
 .mt-8 { margin-top: var(--s8); }
 
 /* ── Domain Flip Cards ──────────────────────────────── */
-.domain-grid { perspective: 1200px; }
+.domain-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--s3);
+  margin: var(--s8) 0;
+  perspective: 1200px;
+}
+@media (max-width: 640px) {
+  .domain-grid { grid-template-columns: repeat(2, 1fr); }
+}
 
 .domain-chip {
   cursor: pointer; background: transparent;
