@@ -2,6 +2,31 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useGameState } from './hooks/useGameState';
 import { DOMAIN_ORDER, DOMAIN_NAMES, DOMAIN_DESCS, DOMAIN_DETAILS, ISLANDS, fmt } from './data/gameData';
 
+/* ── CO3 brand marks ────────────────────────────────── */
+function CO3Mark({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
+      <circle cx="9" cy="9" r="6" fill="none" stroke="var(--co3-pink)" strokeWidth="2.5" />
+      <circle cx="15" cy="15" r="6" fill="none" stroke="var(--co3-orange)" strokeWidth="2.5" />
+    </svg>
+  );
+}
+
+function EUFlag({ className }) {
+  const stars = Array.from({ length: 12 }, (_, i) => {
+    const a = (i * 30 - 90) * Math.PI / 180;
+    return { x: 12 + 7 * Math.cos(a), y: 8 + 7 * Math.sin(a) };
+  });
+  return (
+    <svg viewBox="0 0 24 16" className={className} role="img" aria-label="Avrupa Birliği bayrağı">
+      <rect width="24" height="16" fill="#003399" />
+      {stars.map((s, i) => (
+        <text key={i} x={s.x} y={s.y} fontSize="3" fill="#FFCC00" textAnchor="middle" dominantBaseline="middle">★</text>
+      ))}
+    </svg>
+  );
+}
+
 /* ── theme ──────────────────────────────────────────── */
 function useTheme() {
   const [theme, setTheme] = useState('dark');
@@ -534,6 +559,9 @@ export default function App() {
         <h1>ARCHIPELAGO</h1>
         <div className="divider" />
         <div className="subtitle">Sosyal Sözleşme Yönetim Oyunu</div>
+        <a className="co3-badge" href="https://www.co3socialcontract.eu/" target="_blank" rel="noopener noreferrer">
+          <CO3Mark className="co3-mark" /> CO3 projesinden ilhamla
+        </a>
       </header>
 
       {/* Screens */}
@@ -541,6 +569,18 @@ export default function App() {
       {screen === 'select'  && <SelectScreen onSelect={(isl) => startGame(isl)} />}
       {screen === 'crisis'  && <CrisisScreen state={state} onChoose={choosePolicy} onContinue={continueTurn} onUndo={undo} canUndo={state.past.length > 0} />}
       {screen === 'final'   && <FinalScreen state={state} onReplay={restart} />}
+
+      {/* Footer */}
+      <footer className="site-footer">
+        <EUFlag className="eu-flag" />
+        <p>
+          Bu oyun, Avrupa Birliği'nin Horizon Europe programı kapsamında desteklenen{' '}
+          <a href="https://www.co3socialcontract.eu/" target="_blank" rel="noopener noreferrer">
+            CO3 — Continuous Construction of Resilient Social Contracts
+          </a>{' '}
+          projesinden (hibe no. 101132631) ilham alınarak geliştirilmiştir.
+        </p>
+      </footer>
     </>
   );
 }

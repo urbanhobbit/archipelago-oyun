@@ -5,7 +5,9 @@
       "Read(//tmp/**)",
       "Bash(kill %1)",
       "Bash(ls .claude)",
-      "mcp__Claude_Preview__preview_start"
+      "mcp__Claude_Preview__preview_start",
+      "WebFetch(domain:www.co3socialcontract.eu)",
+      "mcp__Claude_in_Chrome__tabs_context_mcp"
     ]
   }
 }

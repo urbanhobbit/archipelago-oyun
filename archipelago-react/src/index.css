@@ -21,6 +21,11 @@
   --f-display: 'Cormorant Garamond', Georgia, serif;
   --f-body: 'Inter', system-ui, sans-serif;
   --f-mono: 'SFMono-Regular', Consolas, monospace;
+
+  /* CO3 project brand accents — fixed, theme-independent */
+  --co3-indigo: #3F3AA3;
+  --co3-pink:   #E63888;
+  --co3-orange: #F5A623;
 }
 
 /* --- Dark Theme (default) --- */
@@ -160,6 +165,30 @@ button:active { transform: scale(.97); }
   letter-spacing: .3em; text-transform: uppercase;
   color: var(--text-3);
 }
+
+/* --- CO3 badge --- */
+.co3-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-top: var(--s3); padding: 5px 12px;
+  border: 1px solid var(--co3-pink); border-radius: 999px;
+  font-family: var(--f-mono); font-size: 9.5px; letter-spacing: .1em;
+  color: var(--text-2); text-decoration: none;
+  transition: all var(--t-fast);
+}
+.co3-badge:hover { background: var(--co3-pink); color: #fff; }
+.co3-badge .co3-mark { width: 12px; height: 12px; flex-shrink: 0; }
+
+/* --- Site footer --- */
+.site-footer {
+  max-width: 720px; margin: var(--s16) auto 0; padding: var(--s8) var(--s6) var(--s10);
+  border-top: 1px solid var(--border);
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+  gap: var(--s5); text-align: center;
+}
+.site-footer .eu-flag { width: 36px; height: 24px; flex-shrink: 0; border-radius: 2px; }
+.site-footer p { font-size: 11px; color: var(--text-3); line-height: 1.6; max-width: 420px; }
+.site-footer a { color: var(--text-2); text-decoration: underline; text-underline-offset: 2px; }
+.site-footer a:hover { color: var(--co3-pink); }
 
 /* --- Buttons --- */
 .btn {
