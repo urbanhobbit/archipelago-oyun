@@ -30,7 +30,8 @@ const initialState = {
   lastLessonClass: '',
   resilience: 0,
   archetype: null,
-  archetypeSplit: ''
+  archetypeSplit: '',
+  past: []
 };
 
 function reducer(state, action) {
@@ -108,7 +109,8 @@ function reducer(state, action) {
         lastDeltas: allDeltas,
         lastWhy: whyText || csrGateNote ? {why:whyText, csrGate:csrGateNote} : null,
         lastLesson: lessonFlag || null,
-        lastLessonClass: lessonClass
+        lastLessonClass: lessonClass,
+        past: [...state.past, state]
       };
     }
 
@@ -149,7 +151,8 @@ function reducer(state, action) {
           resilience,
           archetype: t[0].a,
           archetypeSplit: `%${pct0} ${t[0].a.name} · %${100-pct0} ${t[1].a.name}`,
-          showFeedback: false
+          showFeedback: false,
+          past: [...state.past, state]
         };
       }
       return {
@@ -162,9 +165,13 @@ function reducer(state, action) {
         lastDeltas: null,
         lastWhy: null,
         lastCsrGate: null,
-        lastLesson: null
+        lastLesson: null,
+        past: [...state.past, state]
       };
     }
+
+    case 'UNDO':
+      return state.past.length ? state.past[state.past.length - 1] : state;
 
     case 'REPLAY':
       return {...initialState, screen: 'onboard'};
@@ -180,7 +187,8 @@ export function useGameState() {
   const startGame = useCallback((island) => dispatch({type:'START_GAME', island}), []);
   const choosePolicy = useCallback((crisis, opt) => dispatch({type:'CHOOSE_POLICY', crisis, opt}), []);
   const continueTurn = useCallback(() => dispatch({type:'CONTINUE'}), []);
+  const undo = useCallback(() => dispatch({type:'UNDO'}), []);
   const replay = useCallback(() => dispatch({type:'REPLAY'}), []);
 
-  return { state, startGame, choosePolicy, continueTurn, replay };
+  return { state, startGame, choosePolicy, continueTurn, undo, replay };
 }

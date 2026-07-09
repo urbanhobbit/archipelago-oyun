@@ -136,6 +136,15 @@ function OnboardScreen({ onNext }) {
   );
 }
 
+/* ── Difficulty Stars ──────────────────────────────────── */
+function DifficultyStars({ n }) {
+  return (
+    <span className="difficulty-stars" title={`Zorluk: ${n}/5`}>
+      {'★'.repeat(n)}<span className="empty">{'★'.repeat(5 - n)}</span>
+    </span>
+  );
+}
+
 /* ── Island Flip Card ──────────────────────────────────── */
 function IslandFlipCard({ isl, index, onSelect }) {
   const [flipped, setFlipped] = useState(false);
@@ -155,20 +164,15 @@ function IslandFlipCard({ isl, index, onSelect }) {
           <div className="accent-line" style={{ background: isl.accent }} />
           <div className="island-card-head">
             <h3>{isl.name}</h3>
-            <span className="difficulty-stars" title={`Zorluk: ${isl.difficulty}/5`}>
-              {'★'.repeat(isl.difficulty)}<span className="empty">{'★'.repeat(5 - isl.difficulty)}</span>
-            </span>
+            <DifficultyStars n={isl.difficulty} />
           </div>
           <p className="tag">{isl.tag}</p>
-          <div className="bars">
+          <div className="island-radar-wrap">
+            <RadarSVG values={isl.domains} color={isl.accent} size={132} />
+          </div>
+          <div className="island-values">
             {DOMAIN_ORDER.map(k => (
-              <div className="bar-row" key={k}>
-                <span className="k">{k}</span>
-                <span className="track">
-                  <span className="fill" style={{ width: `${(isl.domains[k] ?? 0) * 10}%`, background: isl.accent }} />
-                </span>
-                <span className="v">{fmt(isl.domains[k] ?? 0)}</span>
-              </div>
+              <span key={k} className="iv-chip"><b>{k}</b> {fmt(isl.domains[k] ?? 0)}</span>
             ))}
           </div>
           <span className="flip-hint">detay için tıkla ↺</span>
@@ -216,7 +220,7 @@ function SelectScreen({ onSelect }) {
 }
 
 /* ── Crisis Screen ───────────────────────────────────── */
-function CrisisScreen({ state, onChoose, onContinue }) {
+function CrisisScreen({ state, onChoose, onContinue, onUndo, canUndo }) {
   const crisis = state.crises[state.turn];
   const fragile = DOMAIN_ORDER.filter(k => (state.domains[k] ?? 0) < 3);
   const [openDesc, setOpenDesc] = useState(null);
@@ -234,6 +238,7 @@ function CrisisScreen({ state, onChoose, onContinue }) {
         <div className="topbar-left">
           <div className="label">ada</div>
           <div className="value">{state.island?.name}</div>
+          {state.island?.difficulty && <DifficultyStars n={state.island.difficulty} />}
         </div>
         <div>
           <div className="label" style={{ fontFamily: 'var(--f-mono)', fontSize: 9, letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--text-3)', textAlign: 'right' }}>kriz {state.turn + 1} / {state.crises.length}</div>
@@ -242,6 +247,9 @@ function CrisisScreen({ state, onChoose, onContinue }) {
               <div key={i} className={`progress-dot${i < state.turn ? ' done' : ''}`} />
             ))}
           </div>
+          <button className="btn btn-ghost undo-btn" onClick={onUndo} disabled={!canUndo}>
+            ↺ Geri Al
+          </button>
         </div>
       </div>
 
