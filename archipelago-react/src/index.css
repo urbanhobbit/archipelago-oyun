@@ -128,6 +128,15 @@ button:active { transform: scale(.97); }
 }
 .theme-toggle:hover { border-color: var(--border-hi); color: var(--text); }
 
+.restart-toggle {
+  position: fixed; top: var(--s4); left: var(--s4); z-index: 50;
+  background: var(--bg-2); border: 1px solid var(--border);
+  color: var(--text-2); padding: var(--s2) var(--s4);
+  border-radius: var(--r2); font-size: 12px; letter-spacing: 1px;
+  transition: all var(--t-fast);
+}
+.restart-toggle:hover { border-color: var(--border-hi); color: var(--text); }
+
 /* --- Header --- */
 .app-header {
   text-align: center;
@@ -284,6 +293,7 @@ button:active { transform: scale(.97); }
 }
 .topbar-left .label { font-family: var(--f-mono); font-size: 9px; letter-spacing: .2em; text-transform: uppercase; color: var(--text-3); }
 .topbar-left .value { font-family: var(--f-display); font-size: 22px; color: var(--text); margin-top: 2px; }
+.topbar-left .difficulty-stars { display: block; margin-top: 4px; font-size: 11px; }
 .progress-dots { display: flex; gap: var(--s2); justify-content: flex-end; margin-top: var(--s2); }
 .progress-dot {
   width: 8px; height: 8px; border-radius: 2px;
@@ -291,6 +301,9 @@ button:active { transform: scale(.97); }
   transition: all var(--t-med);
 }
 .progress-dot.done { background: var(--gold); box-shadow: 0 0 6px rgba(212,168,75,.4); }
+.topbar-right { display: flex; flex-direction: column; align-items: flex-end; }
+.undo-btn { margin-top: var(--s3); padding: 6px 14px; font-size: 10px; }
+.undo-btn:disabled { opacity: .35; cursor: not-allowed; }
 
 /* Crisis body — two columns on desktop */
 .crisis-body {

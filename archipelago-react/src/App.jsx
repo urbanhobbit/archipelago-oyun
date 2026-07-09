@@ -42,14 +42,13 @@ function DomainFlipCard({ code }) {
 }
 
 /* ── SVG Radar ──────────────────────────────────────── */
-const LABEL_POS = [
-  { x: 150, y: 14,  a: 'middle' },
-  { x: 278, y: 82,  a: 'start'  },
-  { x: 278, y: 218, a: 'start'  },
-  { x: 150, y: 286, a: 'middle' },
-  { x: 22,  y: 218, a: 'end'    },
-  { x: 22,  y: 82,  a: 'end'    },
-];
+function labelPos(i, cx, cy, maxR, size) {
+  const a = (-90 + i * 60) * Math.PI / 180;
+  const cos = Math.cos(a), sin = Math.sin(a);
+  const rx = maxR + size * 0.09, ry = maxR + size * 0.075;
+  const anchor = cos > 0.3 ? 'start' : cos < -0.3 ? 'end' : 'middle';
+  return { x: cx + rx * cos, y: cy + ry * sin, a: anchor };
+}
 
 function radarPts(values, cx, cy, r) {
   return DOMAIN_ORDER.map((k, i) => {
@@ -96,11 +95,11 @@ function RadarSVG({ values, color, prev = null, size = 300 }) {
         stroke={color} strokeWidth="2" strokeLinejoin="round" />
 
       {DOMAIN_ORDER.map((k, i) => {
-        const p = LABEL_POS[i];
+        const p = labelPos(i, cx, cy, maxR, size);
         return (
-          <text key={k} x={p.x} y={p.y} textAnchor={p.a}
+          <text key={k} x={p.x.toFixed(1)} y={p.y.toFixed(1)} textAnchor={p.a}
             fontFamily="SFMono-Regular,Consolas,monospace"
-            fontSize="11" fontWeight="700" fill="var(--text-2)">
+            fontSize={size >= 250 ? 11 : 8} fontWeight="700" fill="var(--text-2)">
             {k}
           </text>
         );
@@ -240,7 +239,7 @@ function CrisisScreen({ state, onChoose, onContinue, onUndo, canUndo }) {
           <div className="value">{state.island?.name}</div>
           {state.island?.difficulty && <DifficultyStars n={state.island.difficulty} />}
         </div>
-        <div>
+        <div className="topbar-right">
           <div className="label" style={{ fontFamily: 'var(--f-mono)', fontSize: 9, letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--text-3)', textAlign: 'right' }}>kriz {state.turn + 1} / {state.crises.length}</div>
           <div className="progress-dots" style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 6 }}>
             {state.crises.map((_, i) => (
@@ -456,11 +455,13 @@ function FinalScreen({ state, onReplay }) {
 
 /* ── App ─────────────────────────────────────────────── */
 export default function App() {
-  const { state, startGame, choosePolicy, continueTurn, replay } = useGameState();
+  const { state, startGame, choosePolicy, continueTurn, undo, replay } = useGameState();
   const { theme, toggle } = useTheme();
   const [screen, setScreen] = useState('onboard');
 
   useEffect(() => { setScreen(state.screen); }, [state.screen]);
+
+  const restart = () => { replay(); setScreen('onboard'); };
 
   // keyboard shortcuts
   useEffect(() => {
@@ -491,6 +492,11 @@ export default function App() {
         {theme === 'dark' ? '☀ Açık' : '☾ Koyu'}
       </button>
 
+      {/* Restart to start */}
+      {screen !== 'onboard' && (
+        <button className="restart-toggle" onClick={restart}>⟲ Başa Dön</button>
+      )}
+
       {/* Header */}
       <header className="app-header">
         <h1>ARCHIPELAGO</h1>
@@ -501,8 +507,8 @@ export default function App() {
       {/* Screens */}
       {screen === 'onboard' && <OnboardScreen onNext={() => setScreen('select')} />}
       {screen === 'select'  && <SelectScreen onSelect={(isl) => startGame(isl)} />}
-      {screen === 'crisis'  && <CrisisScreen state={state} onChoose={choosePolicy} onContinue={continueTurn} />}
-      {screen === 'final'   && <FinalScreen state={state} onReplay={() => { replay(); setScreen('onboard'); }} />}
+      {screen === 'crisis'  && <CrisisScreen state={state} onChoose={choosePolicy} onContinue={continueTurn} onUndo={undo} canUndo={state.past.length > 0} />}
+      {screen === 'final'   && <FinalScreen state={state} onReplay={restart} />}
     </>
   );
 }
