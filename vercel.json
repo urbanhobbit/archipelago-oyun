@@ -1,5 +1,0 @@
-{
-  "buildCommand": "cd archipelago-react && npm install && npm run build",
-  "outputDirectory": "archipelago-react/dist",
-  "framework": null
-}
