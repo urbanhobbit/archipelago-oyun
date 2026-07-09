@@ -406,8 +406,8 @@ function FinalScreen({ state, onReplay }) {
       </div>
 
       {/* Radar */}
-      <div className="radar-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 'var(--s6)' }}>
-        <RadarSVG values={state.domains ?? {}} prev={state.startDomains} color={state.island?.accent ?? '#7B6BB8'} size={300} />
+      <div className="radar-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 'var(--s5)' }}>
+        <RadarSVG values={state.domains ?? {}} prev={state.startDomains} color={state.island?.accent ?? '#7B6BB8'} size={200} />
         <p className="radar-legend-note">kesikli çizgi — başlangıç durumu</p>
         <div className="domain-shift-row">
           {DOMAIN_ORDER.map(k => {
