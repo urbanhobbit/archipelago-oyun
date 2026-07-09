@@ -136,6 +136,64 @@ function OnboardScreen({ onNext }) {
   );
 }
 
+/* ── Island Flip Card ──────────────────────────────────── */
+function IslandFlipCard({ isl, index, onSelect }) {
+  const [flipped, setFlipped] = useState(false);
+  return (
+    <div
+      className={`island-card${flipped ? ' flipped' : ''}`}
+      role="button"
+      tabIndex={0}
+      onClick={() => setFlipped(f => !f)}
+      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setFlipped(f => !f); } }}
+      style={{ '--accent-color': isl.accent, animationDelay: `${index * 60}ms` }}
+      aria-label={`${isl.name} — detay için tıkla`}
+    >
+      <div className="flip-inner">
+        {/* Front */}
+        <div className="flip-face flip-front">
+          <div className="accent-line" style={{ background: isl.accent }} />
+          <div className="island-card-head">
+            <h3>{isl.name}</h3>
+            <span className="difficulty-stars" title={`Zorluk: ${isl.difficulty}/5`}>
+              {'★'.repeat(isl.difficulty)}<span className="empty">{'★'.repeat(5 - isl.difficulty)}</span>
+            </span>
+          </div>
+          <p className="tag">{isl.tag}</p>
+          <div className="bars">
+            {DOMAIN_ORDER.map(k => (
+              <div className="bar-row" key={k}>
+                <span className="k">{k}</span>
+                <span className="track">
+                  <span className="fill" style={{ width: `${(isl.domains[k] ?? 0) * 10}%`, background: isl.accent }} />
+                </span>
+                <span className="v">{fmt(isl.domains[k] ?? 0)}</span>
+              </div>
+            ))}
+          </div>
+          <span className="flip-hint">detay için tıkla ↺</span>
+        </div>
+
+        {/* Back */}
+        <div className="flip-face flip-back">
+          <h3>{isl.name}</h3>
+          <p className="ib-detail">{isl.detail}</p>
+          <span className="ib-label">güçlü yanlar</span>
+          <ul className="ib-list strengths">{isl.strengths.map(s => <li key={s}>{s}</li>)}</ul>
+          <span className="ib-label">kırılganlıklar</span>
+          <ul className="ib-list risks">{isl.risks.map(s => <li key={s}>{s}</li>)}</ul>
+          <button
+            className="btn btn-primary island-select-btn"
+            onClick={e => { e.stopPropagation(); onSelect(isl); }}
+          >
+            Bu Adayı Seç →
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ── Island Select ───────────────────────────────────── */
 function SelectScreen({ onSelect }) {
   return (
@@ -145,24 +203,7 @@ function SelectScreen({ onSelect }) {
       </p>
       <div className="island-grid">
         {ISLANDS.map((isl, i) => (
-          <button
-            key={isl.id}
-            className="island-card"
-            onClick={() => onSelect(isl)}
-            style={{ '--accent-color': isl.accent, animationDelay: `${i * 60}ms` }}
-          >
-            <div className="accent-line" style={{ background: isl.accent }} />
-            <h3>{isl.name}</h3>
-            <p className="tag">{isl.tag}</p>
-            {DOMAIN_ORDER.map(k => (
-              <div className="bar-row" key={k}>
-                <span className="k">{k}</span>
-                <span className="track">
-                  <span className="fill" style={{ width: `${(isl.domains[k] ?? 0) * 10}%`, background: isl.accent }} />
-                </span>
-              </div>
-            ))}
-          </button>
+          <IslandFlipCard key={isl.id} isl={isl} index={i} onSelect={onSelect} />
         ))}
       </div>
       <div className="center">

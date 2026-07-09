@@ -14,12 +14,30 @@ export const DOMAIN_DESCS = {
 export const IDEAL = {CR:7,CSR:7,LEG:7,COH:7,JUS:7,RES:7};
 
 export const ISLANDS = [
-  {id:'polarized',name:'KUTUP ADASI',tag:'Kurumlar güçlü, toplum ikiye bölünmüş.',accent:'#C1502E',domains:{CR:6,CSR:6,LEG:7,COH:2,JUS:3,RES:5}},
-  {id:'welfare',name:'REFAH ADASI',tag:'Dayanışma güçlü, güven aşınıyor.',accent:'#2F6F62',domains:{CR:6,CSR:3,LEG:5,COH:8,JUS:6,RES:8}},
-  {id:'fragile',name:'KIRILGAN ADA',tag:'Kurumlar ayakta, kimse inanmıyor.',accent:'#6B5B73',domains:{CR:4,CSR:2,LEG:2,COH:5,JUS:4,RES:6}},
-  {id:'divided',name:'BÖLÜNMÜŞ ADA',tag:'Haklar geniş, anlatılar çatışıyor.',accent:'#5B4B8A',domains:{CR:8,CSR:5,LEG:6,COH:2,JUS:4,RES:4}},
-  {id:'authority',name:'OTORİTE ADASI',tag:'Devlet sağlam, haklar gölgede.',accent:'#7B2D8E',domains:{CR:3,CSR:7,LEG:8,COH:5,JUS:3,RES:6}},
-  {id:'adaptive',name:'UYUM ADASI',tag:'Dayanışma yüksek, kurumlar eski.',accent:'#D4783A',domains:{CR:5,CSR:4,LEG:4,COH:7,JUS:5,RES:8}}
+  {id:'polarized',name:'KUTUP ADASI',tag:'Kurumlar güçlü, toplum ikiye bölünmüş.',accent:'#C1502E',domains:{CR:6,CSR:6,LEG:7,COH:2,JUS:3,RES:5},difficulty:3,
+    detail:'Kurumlar kağıt üzerinde sağlam, meşruiyet yüksek. Ama toplum iki kampa bölünmüş durumda; yurttaşlar birbirine güvenmiyor ve adalet algısı zayıf. Küçük bir kıvılcım bile kutuplaşmayı alevlendirebilir.',
+    strengths:['Güçlü hukuki-kurumsal temel (LEG 7)','Haklar büyük ölçüde tanınıyor (CR 6)'],
+    risks:['Toplumsal uyum kritik seviyede (COH 2)','Adalet algısı zayıf (JUS 3)']},
+  {id:'welfare',name:'REFAH ADASI',tag:'Dayanışma güçlü, güven aşınıyor.',accent:'#2F6F62',domains:{CR:6,CSR:3,LEG:5,COH:8,JUS:6,RES:8},difficulty:2,
+    detail:'Yurttaşlar birbirine sıkı sıkıya bağlı, dayanışma ağları güçlü ve kriz anında toparlanma kapasitesi yüksek. Ama devletle kurulan ilişki zayıf — insanlar birbirine güveniyor, kuruma değil.',
+    strengths:['Yüksek toplumsal dayanışma (COH 8)','Güçlü kriz direnci (RES 8)'],
+    risks:['Devlete güven düşük (CSR 3)']},
+  {id:'fragile',name:'KIRILGAN ADA',tag:'Kurumlar ayakta, kimse inanmıyor.',accent:'#6B5B73',domains:{CR:4,CSR:2,LEG:2,COH:5,JUS:4,RES:6},difficulty:5,
+    detail:'Kurumlar hâlâ ayakta duruyor ama kimse onlara inanmıyor. Meşruiyet ve devlet güveni çökme noktasında; her karar hem kısa vadeli hasarı önlemek hem de temeli yeniden inşa etmek arasında sıkışıyor.',
+    strengths:['Orta düzey kriz direnci (RES 6)'],
+    risks:['Meşruiyet neredeyse yok (LEG 2)','Devlet güveni çok düşük (CSR 2)','Haklar zayıf korunuyor (CR 4)']},
+  {id:'divided',name:'BÖLÜNMÜŞ ADA',tag:'Haklar geniş, anlatılar çatışıyor.',accent:'#5B4B8A',domains:{CR:8,CSR:5,LEG:6,COH:2,JUS:4,RES:4},difficulty:4,
+    detail:'Haklar kâğıt üzerinde geniş tanımlanmış, ama farklı kesimler ortak bir gerçeklik zemininde buluşamıyor. Anlatılar çatışıyor, güven aşınıyor — genişlemiş haklar tek başına toplumu bir arada tutmuyor.',
+    strengths:['Geniş yurttaşlık hakları (CR 8)'],
+    risks:['Toplumsal uyum kritik (COH 2)','Kriz direnci zayıf (RES 4)']},
+  {id:'authority',name:'OTORİTE ADASI',tag:'Devlet sağlam, haklar gölgede.',accent:'#7B2D8E',domains:{CR:3,CSR:7,LEG:8,COH:5,JUS:3,RES:6},difficulty:3,
+    detail:'Devlet güçlü, kurumlar kararlı ve halk büyük ölçüde devlete güveniyor. Ama bu güç bireysel hakların gölgede kalması pahasına elde edilmiş — sistem sağlam görünse de temeli dar.',
+    strengths:['Güçlü meşruiyet (LEG 8)','Yüksek devlet güveni (CSR 7)'],
+    risks:['Yurttaşlık hakları dar (CR 3)','Adalet algısı zayıf (JUS 3)']},
+  {id:'adaptive',name:'UYUM ADASI',tag:'Dayanışma yüksek, kurumlar eski.',accent:'#D4783A',domains:{CR:5,CSR:4,LEG:4,COH:7,JUS:5,RES:8},difficulty:2,
+    detail:'Yurttaşlar arası dayanışma güçlü ve sistem şoklara karşı esnek, ama kurumlar eski usul — hızlı değişen taleplere ayak uyduramıyor. Toplum kendi kendine tutunuyor, devlet geriden geliyor.',
+    strengths:['Yüksek kriz direnci (RES 8)','Güçlü toplumsal uyum (COH 7)'],
+    risks:['Kurumsal meşruiyet zayıf (LEG 4)','Devlet güveni düşük (CSR 4)']}
 ];
 
 export const CRISES = [

@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Read(//tmp/**)",
+      "Bash(kill %1)",
+      "Bash(ls .claude)",
+      "mcp__Claude_Preview__preview_start"
+    ]
+  }
+}
