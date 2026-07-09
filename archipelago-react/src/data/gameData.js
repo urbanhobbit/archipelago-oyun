@@ -59,7 +59,7 @@ export const DOMAIN_DETAILS = {
     deep: `Yönetenle yönetilen arasındaki çok yönlü bağ: hem somut çıktılar (kamu hizmeti, refah) hem de sembolik/duygusal bağlar (aidiyet, güven). Sözleşmenin kararlı olması için hem yukarıdan aşağı meşru bir hukuki temel hem de aşağıdan yukarı yurttaş desteği ve özdeşleşmesi gerekir.`,
     subdomains: ['Devlet kapasitesi ve performansı', 'Siyasi aidiyet ve kimlik', 'Devletle deneyimsel ilişki', 'Kurumların duyarlılığı algısı'],
     theory: `Siyasi yükümlülük ve meşruiyet kuramları — devletin hem sağlayıcı hem de temsilci rolü`,
-    gameNote: `Dezenformasyon krizindeki "bağımsız kurum" seçeneği bu boyutun eşiğine göre farklı sonuç verir (csrGate mekaniği).`
+    gameNote: `Çevresel şokta yerel kriz komitelerine katılım seçeneği, bu boyutun (CSR) eşiğine göre iki farklı sonuç doğurur.`
   },
   LEG: {
     deep: `İnsanların özgürlüklerinden neden vazgeçip bir siyasi düzene rıza gösterdiğinin cevabı. Hem biçimsel/hukuki temeli (yasalar, prosedürler) hem de normatif rıza temelini kapsar. Yönetim yalnızca "doğru" kabul edildiğinde meşrudur — güç kullanmakla meşru otorite arasındaki fark tam da budur.`,
