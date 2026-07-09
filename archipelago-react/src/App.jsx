@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useGameState } from './hooks/useGameState';
-import { DOMAIN_ORDER, DOMAIN_NAMES, DOMAIN_DESCS, ISLANDS, fmt } from './data/gameData';
+import { DOMAIN_ORDER, DOMAIN_NAMES, DOMAIN_DESCS, DOMAIN_DETAILS, ISLANDS, fmt } from './data/gameData';
 
 /* ── theme ──────────────────────────────────────────── */
 function useTheme() {
@@ -8,6 +8,37 @@ function useTheme() {
   useEffect(() => { document.documentElement.setAttribute('data-theme', theme); }, [theme]);
   const toggle = useCallback(() => setTheme(t => t === 'dark' ? 'light' : 'dark'), []);
   return { theme, toggle };
+}
+
+/* ── Domain Flip Card ───────────────────────────────── */
+function DomainFlipCard({ code }) {
+  const [flipped, setFlipped] = useState(false);
+  const detail = DOMAIN_DETAILS[code];
+  return (
+    <button
+      className={`domain-chip${flipped ? ' flipped' : ''}`}
+      onClick={() => setFlipped(f => !f)}
+      aria-label={`${DOMAIN_NAMES[code]} — detay için tıkla`}
+    >
+      <div className="flip-inner">
+        {/* Front */}
+        <div className="flip-face flip-front">
+          <span className="code">{code}</span>
+          <h4>{DOMAIN_NAMES[code]}</h4>
+          <p>{DOMAIN_DESCS[code]}</p>
+          <span className="flip-hint">tıkla ↺</span>
+        </div>
+        {/* Back */}
+        <div className="flip-face flip-back">
+          <p className="fb-theory">{detail.theory}</p>
+          <p className="fb-desc">{detail.deep}</p>
+          <span className="fb-sub">alt-alanlar</span>
+          <ul>{detail.subdomains.map(s => <li key={s}>{s}</li>)}</ul>
+          <p className="fb-game">{detail.gameNote}</p>
+        </div>
+      </div>
+    </button>
+  );
 }
 
 /* ── SVG Radar ──────────────────────────────────────── */
@@ -87,17 +118,11 @@ function OnboardScreen({ onNext }) {
       <p className="onboard-prose">
         Her toplum <b>altı boyutlu kırılgan bir denge</b> üzerinde durur.
         Bu denge sabit değildir — krizler altında kayar, kararlarla şekillenir.
-        Bir ada seç. Dört kriz yönet. Sözleşmeni inşa et.
+        Her karta tıkla, boyutu tanı. Sonra bir ada seç.
       </p>
 
       <div className="domain-grid">
-        {DOMAIN_ORDER.map(k => (
-          <div className="domain-chip" key={k}>
-            <span className="code">{k}</span>
-            <h4>{DOMAIN_NAMES[k]}</h4>
-            <p>{DOMAIN_DESCS[k]}</p>
-          </div>
-        ))}
+        {DOMAIN_ORDER.map(k => <DomainFlipCard key={k} code={k} />)}
       </div>
 
       <p className="onboard-prose" style={{ fontSize: 13, marginBottom: 0 }}>

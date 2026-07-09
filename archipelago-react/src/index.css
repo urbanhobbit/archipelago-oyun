@@ -416,3 +416,85 @@ button:active { transform: scale(.97); }
 .mt-4 { margin-top: var(--s4); }
 .mt-6 { margin-top: var(--s6); }
 .mt-8 { margin-top: var(--s8); }
+
+/* ── Domain Flip Cards ──────────────────────────────── */
+.domain-grid { perspective: 1200px; }
+
+.domain-chip {
+  cursor: pointer; background: transparent;
+  border: none; padding: 0;
+  height: 200px; position: relative;
+}
+.domain-chip:focus-visible { outline: none; }
+
+.flip-inner {
+  width: 100%; height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform .6s cubic-bezier(.4,.2,.2,1);
+}
+.domain-chip:hover .flip-inner,
+.domain-chip.flipped .flip-inner,
+.domain-chip:focus-visible .flip-inner { transform: rotateY(180deg); }
+@media (prefers-reduced-motion: reduce) { .flip-inner { transition: none; } }
+
+.flip-face {
+  position: absolute; inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: var(--r2);
+  padding: var(--s4) var(--s4);
+  overflow-y: auto;
+}
+.flip-front {
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  display: flex; flex-direction: column; justify-content: flex-start;
+}
+.flip-front .code {
+  font-family: var(--f-mono); font-size: 10px;
+  color: var(--gold); letter-spacing: .15em; opacity: .8;
+  display: block; margin-bottom: var(--s1);
+}
+.flip-front h4 {
+  font-family: var(--f-display); font-size: 17px; font-weight: 400;
+  color: var(--text); margin-bottom: var(--s2);
+}
+.flip-front p { font-size: 13px; color: var(--text-2); line-height: 1.5; }
+.flip-front .flip-hint {
+  font-family: var(--f-mono); font-size: 8.5px;
+  color: var(--text-3); position: absolute;
+  bottom: var(--s2); right: var(--s3);
+}
+
+.flip-back {
+  background: var(--bg-card);
+  border: 1px solid var(--border-hi);
+  transform: rotateY(180deg);
+  text-align: left;
+}
+[data-theme="light"] .flip-back { background: #FFFCF5; }
+
+.flip-back .fb-theory {
+  font-family: var(--f-mono); font-size: 9.5px;
+  color: var(--text-3); letter-spacing: .3px;
+  margin: 0 0 var(--s2);
+}
+.flip-back .fb-desc {
+  font-size: 11px; color: var(--text-2);
+  line-height: 1.55; margin: 0 0 var(--s2);
+}
+.flip-back .fb-sub {
+  font-family: var(--f-mono); font-size: 9px;
+  letter-spacing: .5px; text-transform: uppercase;
+  color: var(--gold); display: block;
+  margin: var(--s2) 0 var(--s1);
+}
+.flip-back ul {
+  padding-left: var(--s4); margin: 0 0 var(--s2);
+  font-size: 10.5px; color: var(--text-2); line-height: 1.5;
+}
+.flip-back .fb-game {
+  font-size: 10.5px; font-style: italic;
+  color: var(--purple); margin: 0;
+}

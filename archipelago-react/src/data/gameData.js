@@ -53,5 +53,44 @@ export const ARCHETYPES = [
   {name:'Buchanancı Pazarlıkçı',desc:'Kararlarını pragmatik pazarlıkla şekillendirdin.'}
 ];
 
+export const DOMAIN_DETAILS = {
+  CR: {
+    deep: `Bir toplumun tam üyeliğini tanımlayan hak ve yükümlülükler bütünü. Doğal hakların hukuki/insan haklarına dönüşümünü, yurttaşlığın karşılıklılığını ve zaman içinde kimlerin "tam yurttaş" sayıldığının genişleyip daralmasını kapsar. Kritik yaklaşımlar, tarihsel olarak kadınların, azınlıkların ve göçmenlerin bu tam üyelikten nasıl dışlandığını da bu alanın parçası sayar.`,
+    subdomains: ['Hakların korunduğuna dair farkındalık', 'Yurttaşlık haklarına aşinalık', 'Yurttaşlık sorumluluğu duygusu', 'Hakların genişlemesi ve kapsayıcılığı'],
+    theory: `Locke (doğal haklar) ve Rousseau (ortak iyiye katılım) + Pateman/Mills'in dışlama eleştirisi`,
+    gameNote: `Göç, mobilizasyon ve dezenformasyon krizlerinde kimin "içeride" sayıldığı bu boyuta işler.`
+  },
+  CSR: {
+    deep: `Yönetenle yönetilen arasındaki çok yönlü bağ: hem somut çıktılar (kamu hizmeti, refah) hem de sembolik/duygusal bağlar (aidiyet, güven). Sözleşmenin kararlı olması için hem yukarıdan aşağı meşru bir hukuki temel hem de aşağıdan yukarı yurttaş desteği ve özdeşleşmesi gerekir.`,
+    subdomains: ['Devlet kapasitesi ve performansı', 'Siyasi aidiyet ve kimlik', 'Devletle deneyimsel ilişki', 'Kurumların duyarlılığı algısı'],
+    theory: `Siyasi yükümlülük ve meşruiyet kuramları — devletin hem sağlayıcı hem de temsilci rolü`,
+    gameNote: `Dezenformasyon krizindeki "bağımsız kurum" seçeneği bu boyutun eşiğine göre farklı sonuç verir (csrGate mekaniği).`
+  },
+  LEG: {
+    deep: `İnsanların özgürlüklerinden neden vazgeçip bir siyasi düzene rıza gösterdiğinin cevabı. Hem biçimsel/hukuki temeli (yasalar, prosedürler) hem de normatif rıza temelini kapsar. Yönetim yalnızca "doğru" kabul edildiğinde meşrudur — güç kullanmakla meşru otorite arasındaki fark tam da budur.`,
+    subdomains: ['Kurumlara güven', 'Prosedürel meşruiyet', 'Uyum ve rıza', 'Sistemin adil algılanması'],
+    theory: `Weberyen otorite tipolojisi + Rawlsçı ve eleştirel demokrasi kuramları`,
+    gameNote: `Kutuplaşma ve mobilizasyon krizlerinde kurumların "kabul görüp görmediği" doğrudan bu boyutu belirler.`
+  },
+  COH: {
+    deep: `Devletle değil, yurttaşların birbiriyle kurduğu yatay bağların kalitesi: güven, dayanışma, farklılıklara rağmen kabul görme. Bir sözleşmenin dayanıklı olması için yalnızca devlete güven yetmez — yurttaşların birbirine güvenmesi ve farklılıklar karşısında dayanışma göstermesi gerekir.`,
+    subdomains: ['Kişilerarası güven', 'Tanınma ve kapsayıcılık', 'Ayrımcılık ve eşitsizlik algısı', 'Duygusal kutuplaşma'],
+    theory: `Cemaatçi (communitarian) ve müzakereci demokrasi gelenekleri`,
+    gameNote: `Dışlayıcı Ada gibi profillerde yüksek COH, düşük CR/JUS ile birlikte gelebilir — "sıkı ama dar" bir dayanışmayı gösterir.`
+  },
+  JUS: {
+    deep: `Sosyal sözleşme düşüncesinin normatif çekirdeği: toplumsal yapılar adalet, tarafsızlık ve eşitlik ilkeleriyle ne kadar örtüşüyor? Rawls'ın "bilgisizlik peçesi" fikrine, ayrıca feminist ve eleştirel ırk kuramlarının klasik sözleşmelere yönelttiği yapısal eşitsizlik eleştirilerine dayanır.`,
+    subdomains: ['Ekonomik eşitsizlik algısı', 'Liyakate inanç', 'Prosedürel adalet', 'Sistemik önyargıya yapısal eleştiri'],
+    theory: `Rawls (bilgisizlik peçesi, fark ilkesi) — mutual-advantage (Gauthier/Buchanan) ile impartiality (Barry/Scanlon) ayrımı`,
+    gameNote: `Ekonomik şok ve çevresel şok krizlerinde "kim öder" sorusu bu boyutu doğrudan sınar.`
+  },
+  RES: {
+    deep: `Sosyal sözleşmelerin sabit değil, dinamik ve koşullara bağlı olduğunu kabul eder: toplumlar sistemik streslere, krizlere ve baskılara nasıl yanıt veriyor? Pandemi, iklim şoku, ekonomik durgunluk gibi krizlere verilen yanıtları ve popülizme karşı demokratik direnci kapsar.`,
+    subdomains: ['Kriz yanıtı değerlendirmesi', 'Demokratik direnç ve yenilikler', 'Geleceğe güven', 'Otoriter kaymaya direnç'],
+    theory: `Polikriz çağında sözleşmelerin uyum ve yenilenme kapasitesi üzerine güncel literatür`,
+    gameNote: `Direnç Puanı bu boyutla karıştırılmamalı: RES bir girdi değişken, Direnç Puanı altı boyutun bileşik dengesidir.`
+  }
+};
+
 export function shuffle(a){const r=[...a];for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]];}return r;}
 export function fmt(n){return (Math.round(n*10)/10).toString();}
