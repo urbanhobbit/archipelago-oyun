@@ -69,6 +69,30 @@
     "exportScoreLabel": "Resilience Score:",
     "exportArchetypeLabel": "Archetype:"
   },
+  "consent": {
+    "title": "Before You Join",
+    "p1": "This game is an independent research tool inspired by the <b>CO3 — Continuous Construction of Resilient Social Contracts</b> project (Horizon Europe grant no. 101132631, coordinated by Demos Helsinki), funded by the European Union.",
+    "controller": "Data controller for this site: Istanbul Bilgi University (Emre Erdoğan). Contact: emre.erdogan@bilgi.edu.tr.",
+    "p3": "If you consent, anonymous data about your playthrough (island chosen, decisions made, decision timing, final outcome) is recorded for research on societal resilience. Your name, email, or IP address are never recorded.",
+    "p4": "Participation is entirely voluntary — you can play the game without consenting, your data simply won't be recorded. You can withdraw consent at any time, and request deletion of your data using the session code shown at the end of the game.",
+    "p5": "Data is hosted within the European Union (Lithuania) and retained for a maximum of 12 months from collection.",
+    "gameplayLabel": "I consent to my anonymous gameplay data being used for this research project.",
+    "demographicsLabel": "I'd also like to answer a few optional demographic questions.",
+    "continue": "Continue",
+    "skipNote": "You can continue and play even without consenting."
+  },
+  "demographics": {
+    "title": "A Few Quick Questions",
+    "intro": "Entirely optional — leave any field blank if you prefer.",
+    "age": "Age range",
+    "ageOptions": { "u18": "Under 18", "18_24": "18-24", "25_34": "25-34", "35_44": "35-44", "45_54": "45-54", "55_64": "55-64", "65p": "65 and over", "none": "Prefer not to say" },
+    "country": "Country",
+    "education": "Education level",
+    "eduOptions": { "highschool": "High school", "bachelor": "Bachelor's", "master": "Master's", "phd": "PhD", "other": "Other", "none": "Prefer not to say" },
+    "field": "Your field of work / interest",
+    "interest": "Interest in social/political issues (1-5)",
+    "continue": "Continue"
+  },
   "learning": {
     "a": "<b>A social contract isn't one single thing.</b> You tracked six dimensions separately — managing one didn't mean managing another.",
     "b": "<b>Context is decisive.</b> In {{count}} decisions, the same policy produced different outcomes depending on the island's conditions.",

@@ -69,6 +69,30 @@
     "exportScoreLabel": "Direnç Puanı:",
     "exportArchetypeLabel": "Arketip:"
   },
+  "consent": {
+    "title": "Katılmadan Önce",
+    "p1": "Bu oyun, Avrupa Birliği Horizon Europe programı kapsamında desteklenen <b>CO3 — Continuous Construction of Resilient Social Contracts</b> projesinden (hibe no. 101132631, koordinatör: Demos Helsinki) ilhamla geliştirilmiş bağımsız bir araştırma aracıdır.",
+    "controller": "Bu sitenin veri sorumlusu: İstanbul Bilgi Üniversitesi (Emre Erdoğan). İletişim: emre.erdogan@bilgi.edu.tr.",
+    "p3": "Onay verirseniz, oynanışınıza ait anonim veriler (seçtiğiniz ada, verdiğiniz kararlar, karar süreleri, final sonucunuz) toplumsal dayanıklılık araştırması amacıyla kaydedilir. Adınız, e-postanız veya IP adresiniz hiçbir şekilde kaydedilmez.",
+    "p4": "Katılım tamamen gönüllüdür — onay vermeseniz de oyunu oynayabilirsiniz, yalnızca veriniz kaydedilmez. Onayınızı istediğiniz an geri çekebilir; oyun sonunda gösterilen oturum koduyla verinizin silinmesini talep edebilirsiniz.",
+    "p5": "Veriler Avrupa Birliği sınırları içinde (Litvanya) barındırılır ve toplandıktan itibaren en fazla 12 ay saklanır.",
+    "gameplayLabel": "Anonim oynanış verimin bu araştırma projesi kapsamında kullanılmasını kabul ediyorum.",
+    "demographicsLabel": "Ayrıca birkaç opsiyonel demografik soruyu yanıtlamak istiyorum.",
+    "continue": "Devam Et",
+    "skipNote": "Onay vermeseniz de devam edip oynayabilirsiniz."
+  },
+  "demographics": {
+    "title": "Birkaç Kısa Soru",
+    "intro": "Tamamen opsiyoneldir — dilediğiniz alanı boş bırakabilirsiniz.",
+    "age": "Yaş aralığı",
+    "ageOptions": { "u18": "18 altı", "18_24": "18-24", "25_34": "25-34", "35_44": "35-44", "45_54": "45-54", "55_64": "55-64", "65p": "65 ve üzeri", "none": "Belirtmek istemiyorum" },
+    "country": "Ülke",
+    "education": "Eğitim düzeyi",
+    "eduOptions": { "highschool": "Lise", "bachelor": "Lisans", "master": "Yüksek Lisans", "phd": "Doktora", "other": "Diğer", "none": "Belirtmek istemiyorum" },
+    "field": "Çalışma / ilgi alanınız",
+    "interest": "Toplumsal-siyasi konulara ilginiz (1-5)",
+    "continue": "Devam Et"
+  },
   "learning": {
     "a": "<b>Sosyal sözleşme tek bir şey değil.</b> Altı boyutu ayrı ayrı izledin — birini yönetmek diğerini yönetmek anlamına gelmedi.",
     "b": "<b>Bağlam belirleyici.</b> {{count}} kararında aynı politika, adanın koşulları yüzünden farklı sonuç verdi.",

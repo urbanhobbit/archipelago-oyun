@@ -227,6 +227,26 @@ button:active { transform: scale(.97); }
 }
 .card-accent { border-top: 3px solid var(--accent-color, var(--gold)); }
 
+/* --- Consent / Demographics --- */
+.consent-screen, .demographics-screen {
+  max-width: 560px; margin: 0 auto; color: var(--text-2); font-size: 14px; line-height: 1.7;
+}
+.consent-screen h2, .demographics-screen h2 { color: var(--text); margin-bottom: var(--s4); }
+.consent-screen p, .demographics-screen p { margin-bottom: var(--s3); }
+.consent-check {
+  display: flex; align-items: flex-start; gap: var(--s2);
+  margin-bottom: var(--s3); cursor: pointer;
+}
+.consent-check input { margin-top: 4px; }
+.consent-skip-note { font-size: 12px; color: var(--text-3); font-style: italic; }
+.demographics-screen label {
+  display: flex; flex-direction: column; gap: var(--s1); margin-bottom: var(--s4); color: var(--text);
+}
+.demographics-screen select, .demographics-screen input[type="text"] {
+  background: var(--bg-2); border: 1px solid var(--border); color: var(--text);
+  padding: var(--s2); border-radius: var(--r2); font-size: 14px;
+}
+
 /* --- Onboard Screen --- */
 .onboard-prose {
   max-width: 560px; margin: 0 auto var(--s8);

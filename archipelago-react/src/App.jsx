@@ -1,8 +1,14 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 import { useGameState } from './hooks/useGameState';
 import { tx } from './i18n/tx';
 import { DOMAIN_ORDER, DOMAIN_NAMES, DOMAIN_DESCS, DOMAIN_DETAILS, ISLANDS, fmt } from './data/gameData';
+import { postConsent, postSessionStart, postDecision, postFinish, postDemographics } from './lib/api';
+
+function detectDeviceType() {
+  const w = window.innerWidth;
+  return w < 640 ? 'mobile' : w < 1024 ? 'tablet' : 'desktop';
+}
 
 /* ── locale ─────────────────────────────────────────── */
 function useLocale() {
@@ -146,6 +152,118 @@ function RadarSVG({ values, color, prev = null, size = 300 }) {
 
       <circle cx={cx} cy={cy} r="4" fill={color} opacity=".7" />
     </svg>
+  );
+}
+
+/* ── Consent ─────────────────────────────────────────── */
+function ConsentScreen({ onContinue }) {
+  const { t } = useTranslation();
+  const [gameplayOptIn, setGameplayOptIn] = useState(false);
+  const [demographicsOptIn, setDemographicsOptIn] = useState(false);
+
+  return (
+    <div className="consent-screen">
+      <h2>{t('consent.title')}</h2>
+      <p><Trans i18nKey="consent.p1" components={{ b: <b /> }} /></p>
+      <p>{t('consent.controller')}</p>
+      <p>{t('consent.p3')}</p>
+      <p>{t('consent.p4')}</p>
+      <p>{t('consent.p5')}</p>
+
+      <label className="consent-check">
+        <input
+          type="checkbox"
+          checked={gameplayOptIn}
+          onChange={e => {
+            setGameplayOptIn(e.target.checked);
+            if (!e.target.checked) setDemographicsOptIn(false);
+          }}
+        />
+        {t('consent.gameplayLabel')}
+      </label>
+      <label className="consent-check">
+        <input
+          type="checkbox"
+          checked={demographicsOptIn}
+          disabled={!gameplayOptIn}
+          onChange={e => setDemographicsOptIn(e.target.checked)}
+        />
+        {t('consent.demographicsLabel')}
+      </label>
+
+      <p className="consent-skip-note">{t('consent.skipNote')}</p>
+
+      <div className="center mt-8">
+        <button className="btn btn-primary" onClick={() => onContinue(gameplayOptIn, demographicsOptIn)}>
+          {t('consent.continue')}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ── Demographics ────────────────────────────────────── */
+function DemographicsScreen({ onSubmit }) {
+  const { t } = useTranslation();
+  const [ageBracket, setAgeBracket] = useState('');
+  const [country, setCountry] = useState('');
+  const [education, setEducation] = useState('');
+  const [field, setField] = useState('');
+  const [interestLvl, setInterestLvl] = useState('');
+  const ageKeys = ['u18', '18_24', '25_34', '35_44', '45_54', '55_64', '65p', 'none'];
+  const eduKeys = ['highschool', 'bachelor', 'master', 'phd', 'other', 'none'];
+
+  const submit = () => onSubmit({
+    ageBracket: ageBracket || null,
+    country: country || null,
+    education: education || null,
+    field: field || null,
+    interestLvl: interestLvl ? Number(interestLvl) : null
+  });
+
+  return (
+    <div className="demographics-screen">
+      <h2>{t('demographics.title')}</h2>
+      <p>{t('demographics.intro')}</p>
+
+      <label>
+        {t('demographics.age')}
+        <select value={ageBracket} onChange={e => setAgeBracket(e.target.value)}>
+          <option value="" />
+          {ageKeys.map(k => <option key={k} value={k}>{t(`demographics.ageOptions.${k}`)}</option>)}
+        </select>
+      </label>
+
+      <label>
+        {t('demographics.country')}
+        <input type="text" value={country} onChange={e => setCountry(e.target.value)} />
+      </label>
+
+      <label>
+        {t('demographics.education')}
+        <select value={education} onChange={e => setEducation(e.target.value)}>
+          <option value="" />
+          {eduKeys.map(k => <option key={k} value={k}>{t(`demographics.eduOptions.${k}`)}</option>)}
+        </select>
+      </label>
+
+      <label>
+        {t('demographics.field')}
+        <input type="text" value={field} onChange={e => setField(e.target.value)} />
+      </label>
+
+      <label>
+        {t('demographics.interest')}
+        <select value={interestLvl} onChange={e => setInterestLvl(e.target.value)}>
+          <option value="" />
+          {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
+        </select>
+      </label>
+
+      <div className="center mt-8">
+        <button className="btn btn-primary" onClick={submit}>{t('demographics.continue')}</button>
+      </div>
+    </div>
   );
 }
 
@@ -348,7 +466,7 @@ function CrisisScreen({ state, onChoose, onContinue, onUndo, canUndo }) {
             <>
               <div className="options-list">
                 {crisis.options.map((opt, i) => (
-                  <button key={i} className="opt-btn" onClick={() => onChoose(crisis, opt)}>
+                  <button key={i} className="opt-btn" onClick={() => onChoose(crisis, opt, i)}>
                     <span className="opt-label">{tx(opt.label, locale)}</span>
                     <span className="opt-hint">{tx(opt.hint, locale)}</span>
                     {opt.csrGate && (
@@ -546,15 +664,82 @@ export default function App() {
   const { t } = useTranslation();
   const { locale, setLocale } = useLocale();
   const [screen, setScreen] = useState('onboard');
+  const [phase, setPhase] = useState('consent'); // 'consent' | 'demographics' | 'game'
+  const [sessionId, setSessionId] = useState(null);
+  const consentFlagsRef = useRef({ gameplayOptIn: false, demographicsOptIn: false });
+  const demographicsRef = useRef(null);
+  const turnStartRef = useRef(Date.now());
+  const finishSentRef = useRef(false);
 
   useEffect(() => { setScreen(state.screen); }, [state.screen]);
 
-  const restart = () => { replay(); setScreen('onboard'); };
+  useEffect(() => {
+    if (screen === 'crisis') turnStartRef.current = Date.now();
+  }, [screen, state.turn]);
+
+  useEffect(() => {
+    if (screen === 'final' && sessionId && !finishSentRef.current) {
+      finishSentRef.current = true;
+      postFinish(sessionId, {
+        finalScore: state.resilience,
+        archetype: tx(state.archetype?.name, 'en'),
+        finalVector: state.domains
+      });
+    }
+    if (screen !== 'final') finishSentRef.current = false;
+  }, [screen, sessionId, state.resilience, state.archetype, state.domains]);
+
+  const handleConsentContinue = useCallback(async (gameplayOptIn, demographicsOptIn) => {
+    consentFlagsRef.current = { gameplayOptIn, demographicsOptIn };
+    if (gameplayOptIn) {
+      const data = await postConsent(gameplayOptIn, demographicsOptIn);
+      if (data?.sessionId) setSessionId(data.sessionId);
+    }
+    setPhase(gameplayOptIn && demographicsOptIn ? 'demographics' : 'game');
+  }, []);
+
+  const handleDemographicsSubmit = useCallback((values) => {
+    demographicsRef.current = values;
+    if (sessionId) postDemographics(sessionId, values);
+    setPhase('game');
+  }, [sessionId]);
+
+  const handleSelectIsland = useCallback((isl) => {
+    startGame(isl);
+    if (sessionId) {
+      postSessionStart(sessionId, {
+        islandId: isl.id, difficulty: isl.difficulty, locale, deviceType: detectDeviceType()
+      });
+    }
+  }, [startGame, sessionId, locale]);
+
+  const handleChoose = useCallback((crisis, opt, idx) => {
+    const decisionMs = Date.now() - turnStartRef.current;
+    choosePolicy(crisis, opt);
+    if (sessionId) {
+      postDecision(sessionId, { crisisId: crisis.id, optionIndex: idx, decisionMs, deltas: opt.deltas });
+    }
+  }, [choosePolicy, sessionId]);
+
+  const restart = async () => {
+    replay();
+    setScreen('onboard');
+    const { gameplayOptIn, demographicsOptIn } = consentFlagsRef.current;
+    if (gameplayOptIn) {
+      const data = await postConsent(gameplayOptIn, demographicsOptIn);
+      if (data?.sessionId) {
+        setSessionId(data.sessionId);
+        if (demographicsOptIn && demographicsRef.current) postDemographics(data.sessionId, demographicsRef.current);
+      }
+    } else {
+      setSessionId(null);
+    }
+  };
 
   // keyboard shortcuts
   useEffect(() => {
     const handler = (e) => {
-      if (screen !== 'crisis') return;
+      if (phase !== 'game' || screen !== 'crisis') return;
       if (state.showFeedback) {
         if (e.key === 'Enter') continueTurn();
         return;
@@ -562,11 +747,11 @@ export default function App() {
       const crisis = state.crises?.[state.turn];
       if (!crisis) return;
       const i = parseInt(e.key) - 1;
-      if (i >= 0 && i < crisis.options.length) choosePolicy(crisis, crisis.options[i]);
+      if (i >= 0 && i < crisis.options.length) handleChoose(crisis, crisis.options[i], i);
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [screen, state.showFeedback, state.turn, state.crises, choosePolicy, continueTurn]);
+  }, [phase, screen, state.showFeedback, state.turn, state.crises, handleChoose, continueTurn]);
 
   return (
     <>
@@ -586,7 +771,7 @@ export default function App() {
       </div>
 
       {/* Restart to start */}
-      {screen !== 'onboard' && (
+      {phase === 'game' && screen !== 'onboard' && (
         <button className="restart-toggle" onClick={restart}>{t('app.restart')}</button>
       )}
 
@@ -601,10 +786,14 @@ export default function App() {
       </header>
 
       {/* Screens */}
-      {screen === 'onboard' && <OnboardScreen onNext={() => setScreen('select')} />}
-      {screen === 'select'  && <SelectScreen onSelect={(isl) => startGame(isl)} />}
-      {screen === 'crisis'  && <CrisisScreen state={state} onChoose={choosePolicy} onContinue={continueTurn} onUndo={undo} canUndo={state.past.length > 0} />}
-      {screen === 'final'   && <FinalScreen state={state} onReplay={restart} />}
+      {phase === 'consent' && <ConsentScreen onContinue={handleConsentContinue} />}
+      {phase === 'demographics' && <DemographicsScreen onSubmit={handleDemographicsSubmit} />}
+      {phase === 'game' && <>
+        {screen === 'onboard' && <OnboardScreen onNext={() => setScreen('select')} />}
+        {screen === 'select'  && <SelectScreen onSelect={handleSelectIsland} />}
+        {screen === 'crisis'  && <CrisisScreen state={state} onChoose={handleChoose} onContinue={continueTurn} onUndo={undo} canUndo={state.past.length > 0} />}
+        {screen === 'final'   && <FinalScreen state={state} onReplay={restart} />}
+      </>}
 
       {/* Footer */}
       <footer className="site-footer">
