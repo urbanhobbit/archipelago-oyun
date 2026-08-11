@@ -7,7 +7,10 @@ import pg from 'pg';
 import crypto from 'node:crypto';
 
 const { Pool } = pg;
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false
+});
 
 const app = express();
 app.disable('x-powered-by');
@@ -142,6 +145,23 @@ app.delete('/api/session/:id', requireSessionId, async (req, res) => {
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: 'could not delete session' });
+  }
+});
+
+// 7) Opsiyonel, session'dan tamamen bağımsız iletişim e-postası.
+// Bilerek session_id ile ilişkilendirilmez — oynanış verisi anonim kalır.
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+app.post('/api/contact', async (req, res) => {
+  const { email } = req.body ?? {};
+  if (typeof email !== 'string' || !EMAIL_RE.test(email) || email.length > 254) {
+    return res.status(400).json({ error: 'valid email required' });
+  }
+  try {
+    await pool.query('INSERT INTO contacts (email) VALUES ($1)', [email]);
+    res.status(204).end();
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'could not save contact' });
   }
 });
 

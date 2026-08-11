@@ -32,3 +32,7 @@ export const postFinish = (sessionId, data) =>
 
 export const postDemographics = (sessionId, data) =>
   post(`/session/${sessionId}/demographics`, data);
+
+// Session'dan bağımsız, ayrı iletişim e-postası (bkz. server/schema.sql yorumu).
+export const postContact = (email) =>
+  post('/contact', { email });

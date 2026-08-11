@@ -3,7 +3,7 @@ import { useTranslation, Trans } from 'react-i18next';
 import { useGameState } from './hooks/useGameState';
 import { tx } from './i18n/tx';
 import { DOMAIN_ORDER, DOMAIN_NAMES, DOMAIN_DESCS, DOMAIN_DETAILS, ISLANDS, fmt } from './data/gameData';
-import { postConsent, postSessionStart, postDecision, postFinish, postDemographics } from './lib/api';
+import { postConsent, postSessionStart, postDecision, postFinish, postDemographics, postContact } from './lib/api';
 
 function detectDeviceType() {
   const w = window.innerWidth;
@@ -156,10 +156,23 @@ function RadarSVG({ values, color, prev = null, size = 300 }) {
 }
 
 /* ── Consent ─────────────────────────────────────────── */
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 function ConsentScreen({ onContinue }) {
   const { t } = useTranslation();
   const [gameplayOptIn, setGameplayOptIn] = useState(false);
   const [demographicsOptIn, setDemographicsOptIn] = useState(false);
+  const [contactOptIn, setContactOptIn] = useState(false);
+  const [email, setEmail] = useState('');
+  const [emailError, setEmailError] = useState(false);
+
+  const submit = () => {
+    if (contactOptIn && !EMAIL_RE.test(email)) {
+      setEmailError(true);
+      return;
+    }
+    onContinue(gameplayOptIn, demographicsOptIn, contactOptIn ? email : null);
+  };
 
   return (
     <div className="consent-screen">
@@ -190,11 +203,33 @@ function ConsentScreen({ onContinue }) {
         />
         {t('consent.demographicsLabel')}
       </label>
+      <label className="consent-check">
+        <input
+          type="checkbox"
+          checked={contactOptIn}
+          onChange={e => {
+            setContactOptIn(e.target.checked);
+            setEmailError(false);
+          }}
+        />
+        {t('consent.contactLabel')}
+      </label>
+      {contactOptIn && (
+        <div className="consent-email">
+          <input
+            type="email"
+            value={email}
+            placeholder={t('consent.emailPlaceholder')}
+            onChange={e => { setEmail(e.target.value); setEmailError(false); }}
+          />
+          {emailError && <p className="consent-email-error">{t('consent.emailInvalid')}</p>}
+        </div>
+      )}
 
       <p className="consent-skip-note">{t('consent.skipNote')}</p>
 
       <div className="center mt-8">
-        <button className="btn btn-primary" onClick={() => onContinue(gameplayOptIn, demographicsOptIn)}>
+        <button className="btn btn-primary" onClick={submit}>
           {t('consent.continue')}
         </button>
       </div>
@@ -689,12 +724,13 @@ export default function App() {
     if (screen !== 'final') finishSentRef.current = false;
   }, [screen, sessionId, state.resilience, state.archetype, state.domains]);
 
-  const handleConsentContinue = useCallback(async (gameplayOptIn, demographicsOptIn) => {
+  const handleConsentContinue = useCallback(async (gameplayOptIn, demographicsOptIn, email) => {
     consentFlagsRef.current = { gameplayOptIn, demographicsOptIn };
     if (gameplayOptIn) {
       const data = await postConsent(gameplayOptIn, demographicsOptIn);
       if (data?.sessionId) setSessionId(data.sessionId);
     }
+    if (email) postContact(email); // session'dan bağımsız, ayrı saklanır
     setPhase(gameplayOptIn && demographicsOptIn ? 'demographics' : 'game');
   }, []);
 

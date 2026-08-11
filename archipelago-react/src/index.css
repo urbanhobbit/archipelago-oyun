@@ -239,6 +239,12 @@ button:active { transform: scale(.97); }
 }
 .consent-check input { margin-top: 4px; }
 .consent-skip-note { font-size: 12px; color: var(--text-3); font-style: italic; }
+.consent-email { margin: var(--s2) 0 var(--s3) 28px; }
+.consent-email input[type="email"] {
+  width: 100%; max-width: 320px; background: var(--bg-2); border: 1px solid var(--border);
+  color: var(--text); padding: var(--s2); border-radius: var(--r2); font-size: 14px;
+}
+.consent-email-error { color: #d33; font-size: 12px; margin-top: var(--s1); }
 .demographics-screen label {
   display: flex; flex-direction: column; gap: var(--s1); margin-bottom: var(--s4); color: var(--text);
 }

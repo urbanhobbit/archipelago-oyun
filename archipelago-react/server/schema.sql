@@ -43,3 +43,13 @@ CREATE TABLE IF NOT EXISTS demographics (
 );
 
 CREATE INDEX IF NOT EXISTS idx_decisions_session ON decisions(session_id);
+
+-- Ayrı, bağımsız rızayla bırakılan iletişim e-postası.
+-- Kasıtlı olarak sessions/decisions'a HİÇBİR şekilde bağlanmaz (session_id yok) —
+-- oynanış verisi anonim kalmaya devam eder. Sadece araştırma sonuçlarını paylaşmak
+-- ve gerekirse bir takip anketine davet etmek için kullanılır.
+CREATE TABLE IF NOT EXISTS contacts (
+  id           SERIAL PRIMARY KEY,
+  email        TEXT NOT NULL,
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+);
